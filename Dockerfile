@@ -4,7 +4,7 @@ ARG rust_version=1.45.2
 # Clone sources.
 FROM alpine/git:latest as source
 ARG tag
-RUN git clone --branch "${tag}" --recurse-submodules --depth 1 https://github.com/Concordium/concordium-node.git /source
+RUN git -c advice.detachedHead=false clone --branch "${tag}" --recurse-submodules --depth 1 https://github.com/Concordium/concordium-node.git /source
 
 # Clone and compile 'flatc'.
 FROM debian:buster as flatbuffers
@@ -14,8 +14,8 @@ RUN apt-get update && \
 RUN git clone https://github.com/google/flatbuffers.git /build
 WORKDIR /build
 ARG flatbuffers_commit=fec58aa129818ed0c0613a7ec36b55135bf81278
-RUN git checkout "${flatbuffers_commit}" && \
-    cmake -G "Unix Makefiles" && \
+RUN git -c advice.detachedHead=false checkout "${flatbuffers_commit}" && \
+    cmake -G "Unix Makefiles" . && \
     make -j$(nproc) && \
     make install
 

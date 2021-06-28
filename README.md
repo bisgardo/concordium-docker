@@ -48,6 +48,13 @@ of the Concordium mainnet and tagged accordingly.
 
 ### Using `docker-compose`
 
+Run a node and collector (image: `concordium-node:<tag>`) with genesis `mainnet-1`
+(image: `concordium-node-genesis:mainnet-1`):
+
 ```
-NODE_NAME=my_node GENESIS_IMAGE=concordium-node-genesis:mainnet-1 NODE_IMAGE=concordium-node:<tag> docker-compose up
+NODE_NAME=my_node GENESIS_TAG=mainnet-1 NODE_TAG=<tag> docker-compose up
 ```
+
+The command will build the images automatically if they don't already exist.
+
+The variable `NODE_NAME` sets the name to be displayed on the public dashboard.

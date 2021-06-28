@@ -2,15 +2,19 @@ version: '3'
 services:
   genesis:
     container_name: node-init-genesis
-    image: ${GENESIS_IMAGE}
+    image: concordium-node-genesis:${GENESIS_VERSION}
     environment:
     - DATA_DIR=/data
     network_mode: none
     volumes:
     - data:/data
+    build:
+      context: genesis
+      args:
+        genesis_file: ${GENESIS_VERSION}.dat
   node:
     container_name: node
-    image: ${NODE_IMAGE}
+    image: concordium-node:${NODE_TAG}
     command: /concordium-node --data-dir=/data --config-dir=/config --bootstrap-node=bootstrap.mainnet.concordium.software:8888 --rpc-server-addr=0.0.0.0 --prometheus-server --no-dnssec
     depends_on:
     - genesis
@@ -22,9 +26,13 @@ services:
     volumes:
     - data:/data
     - config:/config
+    build:
+      context: .
+      args:
+        tag: ${NODE_TAG}
   node-collector:
     container_name: node-collector
-    image: ${NODE_IMAGE}
+    image: concordium-node:${NODE_TAG}
     command: /node-collector --collector-url=http://dashboard.mainnet.concordium.software/nodes/post --grpc-host=http://node:10000 --node-name=${NODE_NAME}
     depends_on:
     - node
