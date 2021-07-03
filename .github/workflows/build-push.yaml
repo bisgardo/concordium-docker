@@ -1,0 +1,38 @@
+name: Build and push
+
+on:
+  workflow_dispatch: # manual trigger
+    inputs:
+      build_version:
+        description: 'Build version'
+        required: true
+      node_tag:
+        description: 'Node tag'
+        required: true
+      genesis_version:
+        description: 'Genesis version'
+        required: true
+        default: 'mainnet-1'
+
+env:
+  node_image_repo: 'bisgardo/concordium-node'
+  genesis_image_repo: 'bisgardo/concordium-node-genesis'
+  node_tag: '${{ github.event.inputs.node_tag }}'
+  genesis_version: '${{ github.event.inputs.genesis_version }}'
+  build_version: '${{ github.event.inputs.build_version }}'
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Log in to Docker Hub
+      run: docker login --username bisgardo --password-stdin <<< "${{ secrets.DOCKERHUB_ACCESS_TOKEN }}"
+    - name: Build and push node and genesis images
+      run: |
+        export NODE_TAG="${{ env.node_tag }}"
+        export GENESIS_VERSION="${{ env.genesis_version }}"
+        export NODE_IMAGE="${{ env.node_image_repo }}:${{ env.node_tag }}_${{ env.build_version }}"
+        export GENESIS_IMAGE="${{ env.genesis_image_repo }}:${{ env.genesis_version }}_${{ env.build_version }}"
+        NODE_NAME= docker-compose build && docker-compose push

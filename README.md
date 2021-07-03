@@ -10,7 +10,7 @@ Dual-purpose Docker image containing the applications `concordium-node` and `nod
 (for reporting state to the public [dashboard](https://dashboard.mainnet.concordium.software/)).
 The two applications are intended to be run in separate containers instantiated from this image.
 
-Build:
+May be build with Docker using the following command or using Docker Compose as described below:
 
 ```
 docker build -t concordium-node:<tag> --build-arg tag=<tag> .
@@ -52,9 +52,18 @@ Run a node and collector (image: `concordium-node:<tag>`) with genesis `mainnet-
 (image: `concordium-node-genesis:mainnet-1`):
 
 ```
-NODE_NAME=my_node GENESIS_TAG=mainnet-1 NODE_TAG=<tag> docker-compose up
+NODE_NAME=my_node \
+NODE_TAG=<tag> \
+GENESIS_VERSION=mainnet-1 \
+NODE_IMAGE=concordium-node:<tag> \
+GENESIS_IMAGE=concordium-node-genesis:mainnet-1 \
+docker-compose up
 ```
 
+where `<tag>` is as described above.
+
 The command will build the images automatically if they don't already exist.
+Set the flag `--no-build` to prevent that.
+The command `... docker-compose build` will only build and not start containers.
 
 The variable `NODE_NAME` sets the name to be displayed on the public dashboard.
