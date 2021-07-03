@@ -1,6 +1,7 @@
 # concordium-docker
 
-A collection of scripts and configuration files to build and deploy a containerized node for the Concordium blockchain.
+A collection of scripts and configuration files to build and deploy a containerized node for the
+[Concordium](https://concordium.com) blockchain.
 
 ## Build
 
@@ -12,17 +13,19 @@ The two applications are intended to be run in separate containers instantiated 
 
 May be build with Docker using the following command or using Docker Compose as described below:
 
-```
+```shell
 docker build -t concordium-node:<tag> --build-arg tag=<tag> .
 ```
 
 where `<tag>` is the desired commit tag from the
 [`concordium-node`](https://github.com/Concordium/concordium-node) code repository.
-This tag is also used for the resulting image.
+The tag is also used for the resulting Docker image.
 
 If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from caching
 the cloned source code at the current commit.
+
+As of the time of this writing, the newest tag is `1.0.1-0`.
 
 *Optional*
 
@@ -37,21 +40,19 @@ Micro image that just holds a genesis data file for the purpose of copying it in
 
 Build:
 
-```
+```shell
 docker build -t concordium-node-genesis:mainnet-1 --build-arg genesis_file=mainnet-1.dat genesis
 ```
 
 The image is built with the initial genesis file `genesis/mainnet-1.dat`
 of the Concordium mainnet and tagged accordingly.
 
-## Run
-
-### Using `docker-compose`
+## Build and/or run using Docker Compose
 
 Run a node and collector (image: `concordium-node:<tag>`) with genesis `mainnet-1`
 (image: `concordium-node-genesis:mainnet-1`):
 
-```
+```shell
 NODE_NAME=my_node \
 NODE_TAG=<tag> \
 GENESIS_VERSION=mainnet-1 \
@@ -64,6 +65,35 @@ where `<tag>` is as described above.
 
 The command will build the images automatically if they don't already exist.
 Set the flag `--no-build` to prevent that.
-The command `... docker-compose build` will only build and not start containers.
+The command `... docker-compose build` will only build the images, not start containers.
 
 The variable `NODE_NAME` sets the name to be displayed on the public dashboard.
+
+## CI: Public images
+
+A GitHub Actions CI job for building and pushing the images to
+[a public registry](https://hub.docker.com/r/bisgardo/concordium-node) is defined in
+[`./.github/workflows/build-push.yaml`](.github/workflows/build-push.yaml).
+
+The images may for example be run using the Docker Compose script like so:
+
+```shell
+export NODE_NAME=my_node
+export NODE_IMAGE=bisgardo/concordium-node:1.0.1-0_0
+export GENESIS_IMAGE=bisgardo/concordium-node-genesis:mainnet-1_0
+docker-compose pull # prevent 'up' from building instead of pulling
+docker-compose up --no-build
+```
+
+Feel free to use these images for testing and experimentation but never trust
+random internet strangers' binaries with anything secret or valuable.
+
+Instead, use the [officially released](https://developer.concordium.software/en/mainnet/net/guides/run-node-ubuntu.html)
+binaries or build them yourself on trusted hardware.
+
+Be sure to completely understand what all build and deployment files that you are using are doing.
+Don't clone this repository in any kind of pipeline to use build anything critical -
+use your own copy/fork or just take the files that you need.
+By using any files from this repository,
+you accept full responsibility of their effect and availability now and in the future,
+so review carefully and only apply changes explicitly.

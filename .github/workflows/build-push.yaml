@@ -15,6 +15,7 @@ on:
         default: 'mainnet-1'
 
 env:
+  user: bisgardo
   node_image_repo: 'bisgardo/concordium-node'
   genesis_image_repo: 'bisgardo/concordium-node-genesis'
   node_tag: '${{ github.event.inputs.node_tag }}'
@@ -28,7 +29,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
     - name: Log in to Docker Hub
-      run: docker login --username bisgardo --password-stdin <<< "${{ secrets.DOCKERHUB_ACCESS_TOKEN }}"
+      run: docker login --username "${{ env.user }}" --password-stdin <<< "${{ secrets.DOCKERHUB_ACCESS_TOKEN }}"
     - name: Build and push node and genesis images
       run: |
         export NODE_TAG="${{ env.node_tag }}"

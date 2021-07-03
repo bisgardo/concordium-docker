@@ -32,7 +32,7 @@ services:
         tag: ${NODE_TAG}
   node-collector:
     container_name: node-collector
-    image: concordium-node:${NODE_TAG}
+    image: ${NODE_IMAGE}
     command: /node-collector --collector-url=http://dashboard.mainnet.concordium.software/nodes/post --grpc-host=http://node:10000 --node-name=${NODE_NAME}
     depends_on:
     - node
