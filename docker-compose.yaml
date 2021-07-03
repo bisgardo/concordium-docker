@@ -2,7 +2,7 @@ version: '3'
 services:
   genesis:
     container_name: node-init-genesis
-    image: concordium-node-genesis:${GENESIS_VERSION}
+    image: ${GENESIS_IMAGE}
     environment:
     - DATA_DIR=/data
     network_mode: none
@@ -14,7 +14,7 @@ services:
         genesis_file: ${GENESIS_VERSION}.dat
   node:
     container_name: node
-    image: concordium-node:${NODE_TAG}
+    image: ${NODE_IMAGE}
     command: /concordium-node --data-dir=/data --config-dir=/config --bootstrap-node=bootstrap.mainnet.concordium.software:8888 --rpc-server-addr=0.0.0.0 --prometheus-server --no-dnssec
     depends_on:
     - genesis
