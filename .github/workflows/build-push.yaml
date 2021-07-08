@@ -1,6 +1,8 @@
+---
+
 name: Build and push
 
-on:
+on: # yamllint disable-line rule:truthy
   workflow_dispatch: # manual trigger
     inputs:
       build_version:

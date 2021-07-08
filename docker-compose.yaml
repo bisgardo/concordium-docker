@@ -1,3 +1,5 @@
+---
+
 version: '3'
 services:
   genesis:
@@ -15,7 +17,14 @@ services:
   node:
     container_name: node
     image: ${NODE_IMAGE}
-    command: /concordium-node --data-dir=/data --config-dir=/config --bootstrap-node=bootstrap.mainnet.concordium.software:8888 --rpc-server-addr=0.0.0.0 --prometheus-server --no-dnssec
+    command: >-
+      /concordium-node
+        --data-dir=/data
+        --config-dir=/config
+        --bootstrap-node=bootstrap.mainnet.concordium.software:8888
+        --rpc-server-addr=0.0.0.0
+        --prometheus-server
+        --no-dnssec
     depends_on:
     - genesis
     networks:
@@ -33,7 +42,11 @@ services:
   node-collector:
     container_name: node-collector
     image: ${NODE_IMAGE}
-    command: /node-collector --collector-url=http://dashboard.mainnet.concordium.software/nodes/post --grpc-host=http://node:10000 --node-name=${NODE_NAME}
+    command: >-
+      /node-collector
+        --collector-url=http://dashboard.mainnet.concordium.software/nodes/post
+        --grpc-host=http://node:10000
+        --node-name=${NODE_NAME}
     depends_on:
     - node
     networks:
