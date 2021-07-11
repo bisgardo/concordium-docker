@@ -1,5 +1,3 @@
----
-
 name: Build and push
 
 on: # yamllint disable-line rule:truthy

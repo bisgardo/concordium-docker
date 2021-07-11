@@ -1,10 +1,12 @@
----
-
 extends: default
 
 rules:
   comments:
     min-spaces-from-content: 1
+  document-end:
+    present: false
+  document-start:
+    present: false
   indentation:
     indent-sequences: false
   line-length:
