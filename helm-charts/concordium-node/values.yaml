@@ -1,0 +1,29 @@
+# Default values for concordium-node.
+
+nodeName: test
+
+node:
+  image:
+    repository: bisgardo/concordium-node
+    tag: "1.0.1-0_0"
+
+genesis:
+  image:
+    repository: bisgardo/concordium-node-genesis
+    tag: "mainnet-1_0"
+
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
+
+service:
+  type: ClusterIP
+  ports:
+    p2p: 8888
+    metrics: 9090
+    rpc: 10000
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
