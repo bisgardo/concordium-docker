@@ -22,6 +22,7 @@ services:
         --bootstrap-node=bootstrap.mainnet.concordium.software:8888
         --rpc-server-addr=0.0.0.0
         --prometheus-server
+        --prometheus-listen-addr=0.0.0.0
         --no-dnssec
     depends_on:
     - genesis
