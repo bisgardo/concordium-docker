@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fullname" . }}
+  labels: {{ include "labels" . | fromYaml | toJson }}
+spec:
+  selector: {{ include "selectorLabels" . | fromYaml | toJson }}
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ default 8888 .Values.service.ports.p2p }}
+    targetPort: p2p
+    protocol: TCP
+    name: p2p
+  {{- with .Values.service.ports.metrics }}
+  - port: {{ . }}
+    targetPort: metrics
+    protocol: TCP
+    name: metrics
+  {{- end }}
+  {{- with .Values.service.ports.rpc }}
+  - port: {{ . }}
+    targetPort: rpc
+    protocol: TCP
+    name: rpc
+  {{- end }}
