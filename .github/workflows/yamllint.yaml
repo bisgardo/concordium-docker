@@ -1,4 +1,4 @@
-name: Yamllint
+name: Lint format of YAML files
 
 on: # yamllint disable-line rule:truthy
   push:

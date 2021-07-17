@@ -1,0 +1,26 @@
+name: Lint Helm files
+
+on: # yamllint disable-line rule:truthy
+  push:
+    paths: 'helm-charts/**'
+
+jobs:
+  helm_lint:
+    strategy:
+      matrix:
+        chart:
+        - concordium-node
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: helm-charts/${{ matrix.chart }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Run 'helm lint'
+      run: helm lint .
+    - name: Install 'yamllint'
+      run: pip install --user yamllint==1.26.1
+    - name: Run 'yamllint' on output of 'helm template'
+      run: yamllint --strict --format=github <(helm template lint .)
