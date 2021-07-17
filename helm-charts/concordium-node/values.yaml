@@ -2,27 +2,24 @@
 
 nodeName: test
 
-node:
-  image:
-    repository: bisgardo/concordium-node
-    tag: "1.0.1-0_0"
+image:
+  repository: bisgardo/concordium-node
+  tag: "1.0.1-0_0"
 
-genesis:
-  image:
-    repository: bisgardo/concordium-node-genesis
-    tag: "mainnet-1_0"
-
-podAnnotations: {}
-podSecurityContext: {}
-securityContext: {}
+genesisImage:
+  repository: bisgardo/concordium-node-genesis
+  tag: "mainnet-1_0"
 
 service:
-  type: ClusterIP
+  type: NodePort
   ports:
     p2p: 8888
     metrics: 9090
     rpc: 10000
 
+podAnnotations: {}
+podSecurityContext: {}
+securityContext: {}
 resources: {}
 nodeSelector: {}
 tolerations: []
