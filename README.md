@@ -26,6 +26,11 @@ then the `--no-cache` flag should be set to prevent the Docker daemon from cachi
 the cloned source code at the current commit.
 
 As of the time of this writing, the newest tag is `1.0.1-0`.
+The current `main` branch of `concordium-node` has some breaking changes in the way CLI arguments are parsed.
+This makes it incompatible with the deployment scripts in the current version of this repo.
+The scripts are updated to become compatible on the branch `next` which will get merged
+once a commit with the new behavior gets tagged in `concordium-node`.
+The updated scripts do not work on commits with the old behavior. 
 
 *Optional*
 
