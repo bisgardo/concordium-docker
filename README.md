@@ -41,11 +41,22 @@ Micro image that just holds a genesis data file for the purpose of copying it in
 Build:
 
 ```shell
-docker build -t concordium-node-genesis:mainnet-1 --build-arg genesis_file=mainnet-1.dat genesis
+docker build -t concordium-node-genesis:mainnet-1 genesis
 ```
 
-The image is built with the initial genesis file `genesis/mainnet-1.dat`
+The image is built with the [initial genesis file](https://distribution.mainnet.concordium.software/data/genesis.dat)
 of the Concordium mainnet and tagged accordingly.
+
+*Optional*
+
+The build arg `genesis_file` overrides the genesis file copied into the image.
+The file may be specified as a URL or a file located in the `genesis` folder (and the path given relative to this folder).
+
+In case the official source is unavailable, this repo has a backup in `genesis/mainnet-1.dat` which may be used instead: 
+
+```shell
+docker build -t concordium-node-genesis:mainnet-1 --build-arg genesis_file=mainnet-1.dat genesis
+```
 
 ## Build and/or run using Docker Compose
 
