@@ -12,6 +12,7 @@ No `ingress` is being set up because the endpoints are not HTTP based.
 - No persistent storage is being set up atm.
 - Given that the node is stateful (once persistent storage is added),
   a `statefulset` would probably be a better match than a `deployment`.
+- The chart contains no tests.
 
 ## Install
 

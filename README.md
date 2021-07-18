@@ -5,6 +5,10 @@ A collection of scripts and configuration files to build and deploy a containeri
 
 ## Build
 
+By default, the builds run in images based on Debian Buster (10).
+Use the build arg `debian_base_image_tag` to use another base.
+The only supported value other than `buster` is `stretch` (Debian 9).
+
 ### `concordium-node`
 
 Dual-purpose Docker image containing the applications `concordium-node` and `node-collector`
@@ -35,9 +39,15 @@ The updated scripts do not work on commits with the old behavior.
 *Optional*
 
 The build args `ghc_version` and `rust_version` override the default values of 8.10.4 and 1.45.2, respectively.
-Additionally, the build arg `extra_features` (defaults to "instrumentation") set
-desired feature flags ("collector" is hardcoded so should not be specified).
-The feature "profiling" should not be set for reasons documented in the dockerfile.
+Additionally, the build arg `extra_features` (defaults to `instrumentation`) set
+desired feature flags (`collector` is hardcoded so should not be specified).
+Note that when `instrumentation` is set,
+`concordium-node` must be started with the CLI flag `--prometheus-server`.
+The feature `profiling` should not be set for reasons explained in the dockerfile.
+
+The full set of supported feature flags may be found in
+[`Cargo.toml`](https://github.com/Concordium/concordium-node/blob/main/concordium-node/Cargo.toml)
+but it's not well documented.
 
 ### `concordium-node-genesis`
 
@@ -78,12 +88,28 @@ docker-compose up
 ```
 
 where `<tag>` is as described above.
-
-The command will build the images automatically if they don't already exist.
-Set the flag `--no-build` to prevent that.
-The command `... docker-compose build` will only build the images, not start containers.
+This will spin up the setup configured in [`docker-compose.yaml`](./docker-compose.yaml)
+(use `-f` to make it read another file).
 
 The variable `NODE_NAME` sets the name to be displayed on the public dashboard.
+
+The command will automatically build the images from scratch if they don't already exist.
+Set the flag `--no-build` to prevent that.
+To only build the images without starting containers, use the command `... docker-compose build`.
+See the [Compose CLI reference](https://docs.docker.com/compose/reference/)
+for the full list of commands and arguments.
+
+Running a node without Docker Compose or some other orchestration tool is cumbersome but obviously possible:
+[Look up](https://docs.docker.com/compose/compose-file/compose-file-v3/) the features used in the Compose file
+and [find](https://docs.docker.com/engine/reference/commandline/run/) the corresponding `docker run` args.
+
+## Usage
+
+Run the following command to get a list of supported arguments:
+
+```shell
+docker run --rm concordium-node:<tag> /concordium-node --help | less
+```
 
 ## CI: Public images
 
@@ -104,7 +130,8 @@ docker-compose up --no-build
 Feel free to use these images for testing and experimentation but never trust
 random internet strangers' binaries with anything secret or valuable.
 
-Instead, use the [officially released](https://developer.concordium.software/en/mainnet/net/guides/run-node-ubuntu.html)
+Instead, use the
+[officially released](https://developer.concordium.software/en/mainnet/net/guides/run-node-ubuntu.html)
 binaries or build them yourself on trusted hardware.
 
 Be sure to completely understand what all build and deployment files that you are using are doing.

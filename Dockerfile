@@ -1,37 +1,49 @@
+# Except for usage in FROM, these ARGs need to be redeclared in the contexts that they're used in.
+# Default values defined here will still apply if they're not overridden.
+ARG tag
 ARG ghc_version=8.10.4
 ARG rust_version=1.45.2
+ARG flatbuffers_commit=fec58aa129818ed0c0613a7ec36b55135bf81278
+ARG extra_features='instrumentation'
+ARG debian_base_image_tag='buster'
 
 # Clone sources.
 FROM alpine/git:latest as source
 ARG tag
-RUN git -c advice.detachedHead=false clone --branch "${tag}" --recurse-submodules --depth 1 https://github.com/Concordium/concordium-node.git /source
+RUN git \
+    -c advice.detachedHead=false \
+    clone \
+    --branch="${tag}" \
+    --recurse-submodules \
+    --depth=1 \
+    https://github.com/Concordium/concordium-node.git \
+    /source
 
 # Clone and compile 'flatc'.
-FROM debian:buster as flatbuffers
+FROM debian:${debian_base_image_tag} as flatbuffers
 RUN apt-get update && \
     apt-get install -y git cmake make g++ && \
     rm -rf /var/lib/apt/lists/*
 RUN git clone https://github.com/google/flatbuffers.git /build
 WORKDIR /build
-ARG flatbuffers_commit=fec58aa129818ed0c0613a7ec36b55135bf81278
+ARG flatbuffers_commit
 RUN git -c advice.detachedHead=false checkout "${flatbuffers_commit}" && \
     cmake -G "Unix Makefiles" . && \
     make -j$(nproc) && \
     make install
 
 # Build 'concordium-node'.
-FROM haskell:${ghc_version}-buster as build
+FROM haskell:${ghc_version}-${debian_base_image_tag} as build
 RUN apt-get update && \
     apt-get install -y liblmdb-dev libpq-dev libssl-dev libunbound-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Redeclare ARGs for them to be visible in here. Previously defined defaults still apply.
 ARG rust_version
 ARG ghc_version
 
 # Install Rust.
 RUN curl https://sh.rustup.rs -sSf | \
-    sh -s -- --profile minimal --default-toolchain "${rust_version}" --component clippy -y
+    sh -s -- --profile=minimal --default-toolchain="${rust_version}" --component=clippy -y
 ENV PATH="${PATH}:/root/.cargo/bin"
 
 # Copy source.
@@ -39,15 +51,16 @@ COPY --from=source /source /build
 WORKDIR /build
 
 # Compile consensus (Haskell and some Rust).
-RUN stack build --stack-yaml concordium-consensus/stack.yaml
+RUN stack build --stack-yaml=concordium-consensus/stack.yaml
 
 # Copy flatbuffer compiler that was built in the previous step.
 COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
 
 # Compile 'concordium-node' (Rust, depends on consensus).
-# Note that feature 'profiling' implies 'static', so that should not be added.
-ARG extra_features='instrumentation'
-RUN cargo build --manifest-path concordium-node/Cargo.toml --release --features="collector,${extra_features}"
+# Note that feature 'profiling' implies 'static' (i.e. static linking).
+# As the build prodecure assumes dynamic linking, this should not be used.
+ARG extra_features
+RUN cargo build --manifest-path=concordium-node/Cargo.toml --release --features="collector,${extra_features}"
 
 # Copy artifacts to '/out'.
 RUN mkdir -p /out/release && \
@@ -63,7 +76,7 @@ RUN mkdir -p /out/release && \
     cp /opt/ghc/*/lib/*/*/lib*.so* /out/libs
 
 # Result image.
-FROM debian:buster
+FROM debian:${debian_base_image_tag}
 RUN apt-get update && \
     apt-get install -y ca-certificates unbound libpq-dev liblmdb-dev && \
     rm -rf /var/lib/apt/lists/*
