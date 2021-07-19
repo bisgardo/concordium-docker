@@ -95,7 +95,8 @@ The variable `NODE_NAME` sets the name to be displayed on the public dashboard.
 
 The command will automatically build the images from scratch if they don't already exist.
 Set the flag `--no-build` to prevent that.
-To only build the images without starting containers, use the command `... docker-compose build`.
+To only build the images without starting containers, use the command `... docker-compose build`,
+which also supports the option `--build-arg` to pass build args that are not specified in the compose file.
 See the [Compose CLI reference](https://docs.docker.com/compose/reference/)
 for the full list of commands and arguments.
 
