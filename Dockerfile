@@ -2,8 +2,8 @@
 # Default values defined here will still apply if they're not overridden.
 ARG tag
 ARG ghc_version=8.10.4
-ARG rust_version=1.45.2
-ARG flatbuffers_commit=fec58aa129818ed0c0613a7ec36b55135bf81278
+ARG rust_version=1.53.0
+ARG flatbuffers_tag=v2.0.0
 ARG extra_features='instrumentation'
 ARG debian_base_image_tag='buster'
 
@@ -24,11 +24,10 @@ FROM debian:${debian_base_image_tag} as flatbuffers
 RUN apt-get update && \
     apt-get install -y git cmake make g++ && \
     rm -rf /var/lib/apt/lists/*
-RUN git clone https://github.com/google/flatbuffers.git /build
+ARG flatbuffers_tag
+RUN git -c advice.detachedHead=false clone --branch="${flatbuffers_tag}" --depth=1 https://github.com/google/flatbuffers.git /build
 WORKDIR /build
-ARG flatbuffers_commit
-RUN git -c advice.detachedHead=false checkout "${flatbuffers_commit}" && \
-    cmake -G "Unix Makefiles" . && \
+RUN cmake -G "Unix Makefiles" . && \
     make -j$(nproc) && \
     make install
 
