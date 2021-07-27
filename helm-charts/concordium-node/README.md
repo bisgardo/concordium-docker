@@ -1,17 +1,19 @@
 # Helm chart: concordium-node
 
-A very basic chart for deploying a node with a collector in a Kubernetes cluster.
-The two applications run in different containers in the same pod using a `deployment` and a `service`.
-An init container copies the genesis data file on startup into an ephemeral volume belonging to the pod.
+A basic chart for deploying a node with a collector in a Kubernetes cluster.
+The two applications run in different containers within the same pod using a `statefulset` and a `service`.
+An init container copies the genesis data file on startup into a persistent volume belonging to the pod.
 
 No `ingress` is being set up because the endpoints are not HTTP based.
+
+The chart has been verified to work (with 1 and 2 replicas) in [minikube](https://minikube.sigs.k8s.io/docs/) on Linux.
 
 *Missing features*
 
 - There is no mechanism for injecting baker credentials.
-- No persistent storage is being set up atm.
-- Given that the node is stateful (once persistent storage is added),
-  a `statefulset` would probably be a better match than a `deployment`.
+- Multiple replicas are not well-supported:
+  It works but there is no mechanism for configuring them differently
+  (e.g., different node names).
 - The chart contains no tests.
 
 ## Install
