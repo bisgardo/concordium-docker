@@ -57,6 +57,8 @@ WORKDIR /build
 # The hack will be removed once the most recent tag builds without it.
 RUN (cd concordium-base/rust-src && cargo update -p=zeroize --precise=1.3.0) && \
     (cd concordium-node && cargo update -p=zeroize --precise=1.3.0)
+# Another similar hack that was needed.
+RUN (cd concordium-node && cargo update -p=bitflags --precise=1.2.1)
 
 # Compile consensus (Haskell and some Rust).
 RUN stack build --stack-yaml=concordium-consensus/stack.yaml
