@@ -18,6 +18,11 @@ RUN git \
     --depth=1 \
     https://github.com/Concordium/concordium-node.git \
     /source
+# Use lock files from cache if they aren't already present ('-n' flag to 'mv' prevents overwrite).
+# We only cache the lock files for the components that we actually build.
+COPY ./cache /cache
+RUN mv -n /cache/concordium-node/Cargo.lock /source/concordium-node/Cargo.lock && \
+    mv -n /cache/concordium-base/rust-src/Cargo.lock /source/concordium-base/rust-src/Cargo.lock
 
 # Clone and compile 'flatc'.
 FROM debian:${debian_base_image_tag} as flatbuffers
@@ -47,16 +52,8 @@ RUN curl https://sh.rustup.rs -sSf | \
 ENV PATH="${PATH}:/root/.cargo/bin"
 
 # Copy source.
-COPY --from=source /source /build
 WORKDIR /build
-
-# Temporary hack: Because the appropriate Cargo.lock files aren't checked in,
-# the library 'zeroize' gets updated to an incompatible version
-# (see 'https://github.com/Concordium/concordium-node/issues/109' for more details).
-# More similar hacks are likely to be needed in the future if old versions need to be built.
-# The hack will be removed once the most recent tag builds without it.
-RUN (cd concordium-base/rust-src && cargo update -p=zeroize --precise=1.3.0) && \
-    (cd concordium-node && cargo update -p=zeroize --precise=1.3.0)
+COPY --from=source /source .
 
 # Compile consensus (Haskell and some Rust).
 RUN stack build --stack-yaml=concordium-consensus/stack.yaml
