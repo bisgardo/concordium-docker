@@ -50,6 +50,32 @@ services:
     - node
     networks:
     - concordium
+  node-dashboard-grpc-proxy:
+    container_name: node-dashboard-grpc-proxy
+    image: envoyproxy/envoy:v1.18-latest
+    command: /usr/local/bin/envoy --config-path /etc/envoy/envoy.yaml
+    depends_on:
+    - node
+    networks:
+    - concordium
+    ports:
+    - "9901:9901" # admin
+    - "9999:9999" # proxy
+    volumes:
+    - ./node-dashboard/envoy.yaml:/etc/envoy/envoy.yaml:ro
+  node-dashboard:
+    container_name: node-dashboard
+    image: ${NODE_DASHBOARD_IMAGE}
+    depends_on:
+    - node-dashboard-grpc-proxy
+    networks:
+    - concordium
+    ports:
+    - "8099:8099"
+    build:
+      context: ./node-dashboard
+      args:
+        tag: main
 volumes:
   data:
   config:
