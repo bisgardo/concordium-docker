@@ -71,7 +71,7 @@ services:
     networks:
     - concordium
     ports:
-    - "8099:8099"
+    - "8099:80"
     build:
       context: ./node-dashboard
       args:

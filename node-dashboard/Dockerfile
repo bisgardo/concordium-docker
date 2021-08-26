@@ -57,9 +57,6 @@ RUN npm install
 ARG grpc_web_host
 RUN GRPC_WEB_HOST="${grpc_web_host}" npm run build
 
-# Serve static artifacts from a fresh image.
-FROM python:3.9-slim-${debian_base_image_tag}
-WORKDIR /var/www/html
-COPY --from=build /build/dist .
-EXPOSE 8099
-ENTRYPOINT [ "python", "-m", "http.server", "8099" ]
+# Serve static artifacts from an nginx image.
+FROM nginx:stable-alpine
+COPY --from=build /build/dist /usr/share/nginx/html
