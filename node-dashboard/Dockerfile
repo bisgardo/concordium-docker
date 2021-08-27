@@ -2,7 +2,8 @@
 # Default values defined here will still apply if they're not overridden.
 ARG tag
 ARG node_js_version='15.8'
-ARG grpc_web_tag='1.2.1'
+ARG protoc_version='3.15.6'
+ARG grpc_web_version='1.2.1'
 ARG debian_base_image_tag='buster'
 ARG grpc_web_host='http://localhost:9999'
 
@@ -19,35 +20,27 @@ RUN git \
     https://github.com/Concordium/concordium-node-dashboard.git \
     .
 
-# Clone and build 'grpc-web'.
-FROM debian:${debian_base_image_tag} as grpc_web
-RUN apt-get update && \
-    apt-get install -y \
-        git \
-        autoconf \
-        libtool \
-        make \
-        g++ \
-    && rm -rf /var/lib/apt/lists/*
-ARG grpc_web_tag
-WORKDIR /build
-RUN git \
-    clone \
-    -c advice.detachedHead=false \
-    --branch="${grpc_web_tag}" \
-    --recurse-submodules \
-    https://github.com/grpc/grpc-web \
-    .
-RUN scripts/init_submodules.sh       # very strange that this is needed
-RUN make -C third_party/grpc install # seems to generate the makefile called below
-RUN make -C third_party/grpc/third_party/protobuf install
-RUN make plugin
-
 # Compile protobuf client stub.
 FROM node:${node_js_version}-${debian_base_image_tag} as grpc_web_client
+RUN apt-get update && \
+    apt-get install -y wget unzip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Download dependency tools 'protoc' and 'protoc-gen-grpc-web' ('protoc' plugin).
+# Could build both tools from source (see commit where this was added),
+# but this is not what they do in their own dockerfiles.
+ARG protoc_version
+RUN wget -q \
+        -O protoc.zip \
+        "https://github.com/protocolbuffers/protobuf/releases/download/v${protoc_version}/protoc-${protoc_version}-linux-x86_64.zip" && \
+    unzip -qq protoc.zip -d /usr/local && \
+    rm protoc.zip
+ARG grpc_web_version
+RUN wget -q \
+        -O /usr/local/bin/protoc-gen-grpc-web \
+        "https://github.com/grpc/grpc-web/releases/download/${grpc_web_version}/protoc-gen-grpc-web-${grpc_web_version}-linux-x86_64" && \
+    chmod +x /usr/local/bin/protoc-gen-grpc-web
 WORKDIR /build
-COPY --from=grpc_web /usr/local/bin/protoc /build/javascript/net/grpc/web/protoc-gen-grpc-web /usr/local/bin/
-COPY --from=grpc_web /usr/local/include/google/protobuf/wrappers.proto ./google/protobuf/
 COPY --from=source /source/deps/grpc-api .
 RUN mkdir /out && \
     protoc \
