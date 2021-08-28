@@ -13,13 +13,19 @@ on: # yamllint disable-line rule:truthy
         description: 'Genesis version'
         required: true
         default: 'mainnet-1'
+      node_dashboard_image_tag:
+        description: 'Node Dashboard image tag'
+        required: true
+        default: 'latest'
 
 env:
   user: bisgardo
   node_image_repo: 'bisgardo/concordium-node'
   genesis_image_repo: 'bisgardo/concordium-node-genesis'
+  node_dashboard_image_repo: 'bisgardo/concordium-node-dashboard'
   node_tag: '${{ github.event.inputs.node_tag }}'
   genesis_version: '${{ github.event.inputs.genesis_version }}'
+  node_dashboard_image_tag: '${{ github.event.inputs.node_dashboard_image_tag }}'
   build_version: '${{ github.event.inputs.build_version }}'
 
 jobs:
@@ -36,4 +42,5 @@ jobs:
         export GENESIS_VERSION="${{ env.genesis_version }}"
         export NODE_IMAGE="${{ env.node_image_repo }}:${{ env.node_tag }}_${{ env.build_version }}"
         export GENESIS_IMAGE="${{ env.genesis_image_repo }}:${{ env.genesis_version }}_${{ env.build_version }}"
+        export NODE_DASHBOARD_IMAGE=${{ env.node_dashboard_image_repo }}:${{ env.node_dashboard_image_tag }}
         NODE_NAME= docker-compose build && docker-compose push

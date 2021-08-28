@@ -1,6 +1,6 @@
 # Except for usage in FROM, these ARGs need to be redeclared in the contexts that they're used in.
 # Default values defined here will still apply if they're not overridden.
-ARG tag
+ARG tag='main'
 ARG node_js_version='15.8'
 ARG protoc_version='3.15.6'
 ARG grpc_web_version='1.2.1'

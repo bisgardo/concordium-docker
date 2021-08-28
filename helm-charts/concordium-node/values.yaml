@@ -22,7 +22,7 @@ service:
     metrics: 9090
     rpc: 10000
 
-# storage configures the class and size of the persistent volume that the database is stored on.
+# storage configures the class and size of the persistent volume that the database is stored in.
 storage:
   className: standard
   size: 10Gi

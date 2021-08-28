@@ -1,7 +1,7 @@
 # concordium-docker
 
-A collection of scripts and configuration files to build and deploy a containerized node for the
-[Concordium](https://concordium.com) blockchain.
+A collection of scripts and configuration files to build and deploy a containerized,
+dynamically linked node for the [Concordium](https://concordium.com) blockchain.
 
 ## Build
 
@@ -116,7 +116,7 @@ The variable `NODE_NAME` sets the name to be displayed on the public dashboard.
 The command will automatically build the images from scratch if they don't already exist.
 Set the flag `--no-build` to prevent that.
 To only build the images without starting containers, use the command `... docker-compose build`,
-which also supports the option `--build-arg` to pass build args that are not specified in the compose file.
+which also supports the option `--build-arg` to override build args in the compose file.
 See the [Compose CLI reference](https://docs.docker.com/compose/reference/)
 for the full list of commands and arguments.
 
@@ -144,7 +144,9 @@ The images may for example be run using the Docker Compose script like so:
 export NODE_NAME=my_node
 export NODE_IMAGE=bisgardo/concordium-node:1.0.1-0_0
 export GENESIS_IMAGE=bisgardo/concordium-node-genesis:mainnet-1_0
+export NODE_DASHBOARD_IMAGE=concordium-node-dashboard:latest
 docker-compose pull # prevent 'up' from building instead of pulling
+
 docker-compose up --no-build
 ```
 
