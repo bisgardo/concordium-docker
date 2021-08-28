@@ -6,7 +6,7 @@ An init container copies the genesis data file on startup into a persistent volu
 
 No `ingress` is being set up because the endpoints are not HTTP based.
 
-The chart has been verified to work (with 1 and 2 replicas) in [minikube](https://minikube.sigs.k8s.io/docs/) on Linux.
+The chart has been verified to work (with 1 and 2 replicas) in [minikube](https://minikube.sigs.k8s.io/docs/) v1.22.0 on Ubuntu 20.04.
 
 *Missing features*
 

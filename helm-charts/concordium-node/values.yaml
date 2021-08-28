@@ -7,12 +7,12 @@ nodeName: test
 # image is the image repository and tag to used for the 'node' and 'collector' containers.
 image:
   repository: bisgardo/concordium-node
-  tag: "1.0.1-0_0"
+  tag: "1.0.1-0_1"
 
 # genesisImage is the image repository and tag to used for the 'init-genesis` container.
 genesisImage:
   repository: bisgardo/concordium-node-genesis
-  tag: "mainnet-1_0"
+  tag: "mainnet-1"
 
 # service configures the service type and the ports of the individual endpoints exposed by the service.
 service:

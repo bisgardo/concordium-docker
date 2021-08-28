@@ -142,11 +142,10 @@ The images may for example be run using the Docker Compose script like so:
 
 ```shell
 export NODE_NAME=my_node
-export NODE_IMAGE=bisgardo/concordium-node:1.0.1-0_0
-export GENESIS_IMAGE=bisgardo/concordium-node-genesis:mainnet-1_0
-export NODE_DASHBOARD_IMAGE=concordium-node-dashboard:latest
+export NODE_IMAGE=bisgardo/concordium-node:1.0.1-0_1
+export GENESIS_IMAGE=bisgardo/concordium-node-genesis:mainnet-1_1
+export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:latest
 docker-compose pull # prevent 'up' from building instead of pulling
-
 docker-compose up --no-build
 ```
 
