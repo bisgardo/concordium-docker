@@ -1,0 +1,36 @@
+{{- if .Values.node.endpoints -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "fullname" . }}
+  labels: {{ include "labels" . | fromYaml | toJson }}
+  {{- with .Values.ingress.annotations }}
+  annotations: {{ toJson . }}
+  {{- end }}
+spec:
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+      {{- range .hosts }}
+      - {{ . | quote }}
+      {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+        {{- range .paths }}
+        - path: {{ . }}
+          pathType: Prefix
+          backend:
+            service:
+              name: {{ include "fullname" . }}
+              port:
+                number: {{ .Values.service.port }}
+        {{- end }}
+    {{- end }}
+{{- end }}
