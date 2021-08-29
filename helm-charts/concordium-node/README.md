@@ -30,6 +30,15 @@ Also consider overriding the image repositories (using `--set` or a custom value
 See [values.yaml](./values.yaml) (e.g. using `helm show values .`)
 for the default values and a full list of overridable fields.
 
+## Test
+
+Once installed, a test may be run on the release to verify that it's running:
+
+```shell
+helm test concordium-node
+```
+
+
 ## Uninstall
 
 ```shell
