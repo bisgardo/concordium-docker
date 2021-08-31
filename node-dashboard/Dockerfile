@@ -23,7 +23,7 @@ RUN git \
 # Compile protobuf client stub.
 FROM node:${node_js_version}-${debian_base_image_tag} as grpc_web_client
 # Download dependency tools 'protoc' and 'protoc-gen-grpc-web' ('protoc' plugin).
-# Could build both tools from source (see commit where this was added),
+# Could build both tools from source (see commit '14d9274a')
 # but this is not what they do in their own dockerfiles.
 ARG protoc_version
 RUN wget -q \
