@@ -8,8 +8,9 @@ ARG extra_features='instrumentation'
 ARG debian_base_image_tag='buster'
 
 # Clone sources.
-FROM alpine/git:latest as source
+FROM alpine/git:latest AS source
 ARG tag
+WORKDIR /source
 RUN git \
     -c advice.detachedHead=false \
     clone \
@@ -17,20 +18,20 @@ RUN git \
     --recurse-submodules \
     --depth=1 \
     https://github.com/Concordium/concordium-node.git \
-    /source
+    .
 # Use lock files from cache if they aren't already present ('-n' flag to 'mv' prevents overwrite).
 # We only cache the lock files for the components that we actually build.
 COPY ./cache /cache
-RUN mv -n /cache/concordium-node/Cargo.lock /source/concordium-node/Cargo.lock && \
-    mv -n /cache/concordium-base/rust-src/Cargo.lock /source/concordium-base/rust-src/Cargo.lock
+RUN mv -n /cache/concordium-node/Cargo.lock ./concordium-node/Cargo.lock && \
+    mv -n /cache/concordium-base/rust-src/Cargo.lock ./concordium-base/rust-src/Cargo.lock
 
 # Clone and compile 'flatc'.
-FROM debian:${debian_base_image_tag} as flatbuffers
+FROM debian:${debian_base_image_tag} AS flatbuffers
 RUN apt-get update && \
     apt-get install -y git cmake make g++ && \
     rm -rf /var/lib/apt/lists/*
-RUN git clone https://github.com/google/flatbuffers.git /build
 WORKDIR /build
+RUN git clone https://github.com/google/flatbuffers.git .
 ARG flatbuffers_commit
 RUN git -c advice.detachedHead=false checkout "${flatbuffers_commit}" && \
     cmake -G "Unix Makefiles" . && \
@@ -38,15 +39,13 @@ RUN git -c advice.detachedHead=false checkout "${flatbuffers_commit}" && \
     make install
 
 # Build 'concordium-node'.
-FROM haskell:${ghc_version}-${debian_base_image_tag} as build
+FROM haskell:${ghc_version}-${debian_base_image_tag} AS build
 RUN apt-get update && \
     apt-get install -y liblmdb-dev libpq-dev libssl-dev libunbound-dev && \
     rm -rf /var/lib/apt/lists/*
 
-ARG rust_version
-ARG ghc_version
-
 # Install Rust.
+ARG rust_version
 RUN curl https://sh.rustup.rs -sSf | \
     sh -s -- --profile=minimal --default-toolchain="${rust_version}" --component=clippy -y
 ENV PATH="${PATH}:/root/.cargo/bin"
@@ -56,7 +55,7 @@ WORKDIR /build
 COPY --from=source /source .
 
 # Compile consensus (Haskell and some Rust).
-RUN stack build --stack-yaml=concordium-consensus/stack.yaml
+RUN stack build --stack-yaml=./concordium-consensus/stack.yaml
 
 # Copy flatbuffer compiler that was built in the previous step.
 COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
@@ -65,18 +64,18 @@ COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
 # Note that feature 'profiling' implies 'static' (i.e. static linking).
 # As the build prodecure assumes dynamic linking, this should not be used.
 ARG extra_features
-RUN cargo build --manifest-path=concordium-node/Cargo.toml --release --features="collector,${extra_features}"
+RUN cargo build --manifest-path=./concordium-node/Cargo.toml --release --features="collector,${extra_features}"
 
 # Copy artifacts to '/out'.
 RUN mkdir -p /out/release && \
     cp \
-        /build/concordium-node/target/release/concordium-node \
-        /build/concordium-node/target/release/node-collector \
+        ./concordium-node/target/release/concordium-node \
+        ./concordium-node/target/release/node-collector \
         /out/release && \
     mkdir -p /out/libs && \
-    cp /build/concordium-base/rust-src/target/release/*.so /out/libs && \
-    cp /build/concordium-consensus/.stack-work/install/x86_64-linux/*/*/lib/x86_64-linux-ghc-*/libHS*.so /out/libs && \
-    cp /build/concordium-consensus/smart-contracts/lib/*.so /out/libs && \
+    cp ./concordium-base/rust-src/target/release/*.so /out/libs && \
+    cp ./concordium-consensus/.stack-work/install/x86_64-linux/*/*/lib/x86_64-linux-ghc-*/libHS*.so /out/libs && \
+    cp ./concordium-consensus/smart-contracts/lib/*.so /out/libs && \
     cp /root/.stack/snapshots/x86_64-linux/*/*/lib/x86_64-linux-ghc-*/libHS*.so /out/libs && \
     cp /opt/ghc/*/lib/*/*/lib*.so* /out/libs
 

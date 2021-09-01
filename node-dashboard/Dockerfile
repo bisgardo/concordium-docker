@@ -8,7 +8,7 @@ ARG debian_base_image_tag='buster'
 ARG grpc_web_host='http://localhost:9999'
 
 # Clone sources.
-FROM alpine/git:latest as source
+FROM alpine/git:latest AS source
 ARG tag
 WORKDIR /source
 RUN git \
@@ -21,7 +21,7 @@ RUN git \
     .
 
 # Compile protobuf client stub.
-FROM node:${node_js_version}-${debian_base_image_tag} as grpc_web_client
+FROM node:${node_js_version}-${debian_base_image_tag} AS grpc_web_client
 # Download dependency tools 'protoc' and 'protoc-gen-grpc-web' ('protoc' plugin).
 # Could build both tools from source (see commit '14d9274a')
 # but this is not what they do in their own dockerfiles.
@@ -45,7 +45,7 @@ RUN mkdir /out && \
         *.proto
 
 # Build the app.
-FROM node:${node_js_version}-${debian_base_image_tag} as build
+FROM node:${node_js_version}-${debian_base_image_tag} AS build
 WORKDIR /build
 COPY --from=source /source .
 COPY --from=grpc_web_client /out ./grpc-api-client
