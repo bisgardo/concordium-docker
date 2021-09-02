@@ -52,9 +52,9 @@ COPY --from=source /source/concordium-consensus/smart-contracts .
 RUN cargo build --release --manifest-path ./wasm-chain-integration/Cargo.toml
 
 # Build 'concordium-node'.
-FROM haskell:${ghc_version}-${debian_base_image_tag} AS build
+FROM haskell:${ghc_version}-${debian_base_image_tag} AS build-consensus
 RUN apt-get update && \
-    apt-get install -y liblmdb-dev libpq-dev libssl-dev libunbound-dev && \
+    apt-get install -y liblmdb-dev libpq-dev && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /build
@@ -75,33 +75,42 @@ RUN ln -s /bin/true /usr/local/bin/cargo
 # Compile consensus.
 RUN stack build --stack-yaml=./concordium-consensus/stack.yaml
 
-# Remove fake rust hack and install Rust.
-RUN rm /usr/local/bin/cargo
-ARG rust_version
-RUN curl https://sh.rustup.rs -sSf | \
-    sh -s -- --profile=minimal --default-toolchain="${rust_version}" --component=clippy -y
-ENV PATH="${PATH}:/root/.cargo/bin"
+# Copy artifacts to '/out'.
+ARG ghc_version
+RUN mkdir -p /out/lib && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /out/lib && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /out/lib && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /out/lib
 
-# Copy flatbuffer compiler that was built in the previous step.
+FROM rust:${rust_version}-${debian_base_image_tag} AS build-node
+RUN apt-get update && \
+    apt-get install -y libssl-dev libunbound-dev && \
+    rm -rf /var/lib/apt/lists/*
+WORKDIR /build
+# Copy source code and libraries built in previous phases.
+COPY --from=source /source .
+# Copy flatbuffer compiler that was built in a previous step.
 COPY --from=build-flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
+
+# Copy libraries (see 'concordium-node/build.rs' - note that versions are hardcoded in that script)...
+COPY --from=build-consensus /out/lib/libHSconcordium-consensus-*  /consensus-libs/libHSconcordium-consensus-0.1.0.0.so
+COPY --from=build-consensus /out/lib/libHSconcordium-base-* /consensus-libs/libHSconcordium-base-0.1.0.0.so
+COPY --from=build-consensus /out/lib/libHSlmdb-* /consensus-libs/libHSlmdb-0.2.5.so
+
+# TODO Some build script magic/fix thing...
 
 # Compile 'concordium-node' (Rust, depends on consensus).
 # Note that feature 'profiling' implies 'static' (i.e. static linking).
 # As the build prodecure assumes dynamic linking, this should not be used.
 ARG extra_features
-RUN cargo build --manifest-path=./concordium-node/Cargo.toml --release --features="collector,${extra_features}"
+RUN CONCORDIUM_HASKELL_ROOT=/consensus-libs cargo build --manifest-path=./concordium-node/Cargo.toml --release --features="collector,${extra_features}"
 
 # Copy artifacts to '/out'.
-ARG ghc_version
 RUN mkdir -p /out/bin && \
     cp \
         ./concordium-node/target/release/concordium-node \
         ./concordium-node/target/release/node-collector \
-        /out/bin && \
-    mkdir -p /out/lib && \
-    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /out/lib && \
-    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /out/lib && \
-    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /out/lib
+        /out/bin
 
 # Result image.
 FROM debian:${debian_base_image_tag}
@@ -118,6 +127,6 @@ EXPOSE 10000
 
 COPY --from=build-crypto /build/target/release/*.so /usr/lib/x86_64-linux-gnu/
 COPY --from=build-wasm /build/wasm-chain-integration/target/release/*.so /usr/lib/x86_64-linux-gnu/
-COPY --from=build /out/lib/* /usr/lib/x86_64-linux-gnu/
-COPY --from=build /out/bin/concordium-node /concordium-node
-COPY --from=build /out/bin/node-collector /node-collector
+COPY --from=build-consensus /out/lib/*.so /usr/lib/x86_64-linux-gnu/
+COPY --from=build-node /out/bin/concordium-node /concordium-node
+COPY --from=build-node /out/bin/node-collector /node-collector
