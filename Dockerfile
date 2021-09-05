@@ -67,17 +67,18 @@ ARG extra_features
 RUN cargo build --manifest-path=./concordium-node/Cargo.toml --release --features="collector,${extra_features}"
 
 # Copy artifacts to '/out'.
-RUN mkdir -p /out/release && \
+ARG ghc_version
+RUN mkdir -p /out/bin && \
     cp \
         ./concordium-node/target/release/concordium-node \
         ./concordium-node/target/release/node-collector \
-        /out/release && \
-    mkdir -p /out/libs && \
-    cp ./concordium-base/rust-src/target/release/*.so /out/libs && \
-    cp ./concordium-consensus/.stack-work/install/x86_64-linux/*/*/lib/x86_64-linux-ghc-*/libHS*.so /out/libs && \
-    cp ./concordium-consensus/smart-contracts/lib/*.so /out/libs && \
-    cp /root/.stack/snapshots/x86_64-linux/*/*/lib/x86_64-linux-ghc-*/libHS*.so /out/libs && \
-    cp /opt/ghc/*/lib/*/*/lib*.so* /out/libs
+        /out/bin && \
+    mkdir -p /out/lib && \
+    cp ./concordium-base/rust-src/target/release/*.so /out/lib && \
+    cp ./concordium-consensus/smart-contracts/lib/*.so /out/lib && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /out/lib && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /out/lib && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /out/lib
 
 # Result image.
 FROM debian:${debian_base_image_tag}
@@ -92,6 +93,6 @@ EXPOSE 9090
 # GRPC port ('concordium-node').
 EXPOSE 10000
 
-COPY --from=build /out/release/concordium-node /concordium-node
-COPY --from=build /out/release/node-collector /node-collector
-COPY --from=build /out/libs/* /usr/lib/x86_64-linux-gnu/
+COPY --from=build /out/bin/concordium-node /concordium-node
+COPY --from=build /out/bin/node-collector /node-collector
+COPY --from=build /out/lib/* /usr/lib/x86_64-linux-gnu/
