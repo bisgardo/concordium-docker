@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "fullname" . }}-test"
+  labels: {{ include "labels" . | fromYaml | toJson }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+  - name: get-consensus-status
+    image: busybox
+    command:
+    - /work/get-consensus-status.sh
+    volumeMounts:
+    - mountPath: /work
+      name: tests
+      readOnly: true
+  volumes:
+  - name: tests
+    configMap:
+      name: {{ template "fullname" . }}-test
+      defaultMode: 0777
+      items:
+      - key: get-consensus-status.sh
+        path: get-consensus-status.sh
+  restartPolicy: Never

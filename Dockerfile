@@ -8,8 +8,9 @@ ARG extra_features='instrumentation'
 ARG debian_base_image_tag='buster'
 
 # Clone sources.
-FROM alpine/git:latest as source
+FROM alpine/git:latest AS source
 ARG tag
+WORKDIR /source
 RUN git \
     -c advice.detachedHead=false \
     clone \
@@ -17,48 +18,43 @@ RUN git \
     --recurse-submodules \
     --depth=1 \
     https://github.com/Concordium/concordium-node.git \
-    /source
+    .
+# Use lock files from cache if they aren't already present ('-n' flag to 'mv' prevents overwrite).
+# We only cache the lock files for the components that we actually build.
+COPY ./cache /cache
+RUN mv -n /cache/concordium-node/Cargo.lock ./concordium-node/Cargo.lock && \
+    mv -n /cache/concordium-base/rust-src/Cargo.lock ./concordium-base/rust-src/Cargo.lock
 
 # Clone and compile 'flatc'.
-FROM debian:${debian_base_image_tag} as flatbuffers
+FROM debian:${debian_base_image_tag} AS flatbuffers
 RUN apt-get update && \
     apt-get install -y git cmake make g++ && \
     rm -rf /var/lib/apt/lists/*
-ARG flatbuffers_tag
-RUN git -c advice.detachedHead=false clone --branch="${flatbuffers_tag}" --depth=1 https://github.com/google/flatbuffers.git /build
 WORKDIR /build
+ARG flatbuffers_tag
+RUN git -c advice.detachedHead=false clone --branch="${flatbuffers_tag}" --depth=1 https://github.com/google/flatbuffers.git .
 RUN cmake -G "Unix Makefiles" . && \
-    make -j$(nproc) && \
+    make -j"$(nproc)" && \
     make install
 
 # Build 'concordium-node'.
-FROM haskell:${ghc_version}-${debian_base_image_tag} as build
+FROM haskell:${ghc_version}-${debian_base_image_tag} AS build
 RUN apt-get update && \
     apt-get install -y liblmdb-dev libpq-dev libssl-dev libunbound-dev && \
     rm -rf /var/lib/apt/lists/*
 
-ARG rust_version
-ARG ghc_version
-
 # Install Rust.
+ARG rust_version
 RUN curl https://sh.rustup.rs -sSf | \
     sh -s -- --profile=minimal --default-toolchain="${rust_version}" --component=clippy -y
 ENV PATH="${PATH}:/root/.cargo/bin"
 
 # Copy source.
-COPY --from=source /source /build
 WORKDIR /build
-
-# Temporary hack: Because the appropriate Cargo.lock files aren't checked in,
-# the library 'zeroize' gets updated to an incompatible version
-# (see 'https://github.com/Concordium/concordium-node/issues/109' for more details).
-# More similar hacks are likely to be needed in the future if old versions need to be built.
-# The hack will be removed once the most recent tag builds without it.
-RUN (cd concordium-base/rust-src && cargo update -p=zeroize --precise=1.3.0) && \
-    (cd concordium-node && cargo update -p=zeroize --precise=1.3.0)
+COPY --from=source /source .
 
 # Compile consensus (Haskell and some Rust).
-RUN stack build --stack-yaml=concordium-consensus/stack.yaml
+RUN stack build --stack-yaml=./concordium-consensus/stack.yaml
 
 # Copy flatbuffer compiler that was built in the previous step.
 COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
@@ -67,20 +63,21 @@ COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
 # Note that feature 'profiling' implies 'static' (i.e. static linking).
 # As the build prodecure assumes dynamic linking, this should not be used.
 ARG extra_features
-RUN cargo build --manifest-path=concordium-node/Cargo.toml --release --features="collector,${extra_features}"
+RUN cargo build --manifest-path=./concordium-node/Cargo.toml --release --features="collector,${extra_features}"
 
 # Copy artifacts to '/out'.
-RUN mkdir -p /out/release && \
+ARG ghc_version
+RUN mkdir -p /out/bin && \
     cp \
-        /build/concordium-node/target/release/concordium-node \
-        /build/concordium-node/target/release/node-collector \
-        /out/release && \
-    mkdir -p /out/libs && \
-    cp /build/concordium-base/rust-src/target/release/*.so /out/libs && \
-    cp /build/concordium-consensus/.stack-work/install/x86_64-linux/*/*/lib/x86_64-linux-ghc-*/libHS*.so /out/libs && \
-    cp /build/concordium-consensus/smart-contracts/lib/*.so /out/libs && \
-    cp /root/.stack/snapshots/x86_64-linux/*/*/lib/x86_64-linux-ghc-*/libHS*.so /out/libs && \
-    cp /opt/ghc/*/lib/*/*/lib*.so* /out/libs
+        ./concordium-node/target/release/concordium-node \
+        ./concordium-node/target/release/node-collector \
+        /out/bin && \
+    mkdir -p /out/lib && \
+    cp ./concordium-base/rust-src/target/release/*.so /out/lib && \
+    cp ./concordium-consensus/smart-contracts/lib/*.so /out/lib && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /out/lib && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /out/lib && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /out/lib
 
 # Result image.
 FROM debian:${debian_base_image_tag}
@@ -95,6 +92,6 @@ EXPOSE 9090
 # GRPC port ('concordium-node').
 EXPOSE 10000
 
-COPY --from=build /out/release/concordium-node /concordium-node
-COPY --from=build /out/release/node-collector /node-collector
-COPY --from=build /out/libs/* /usr/lib/x86_64-linux-gnu/
+COPY --from=build /out/bin/concordium-node /concordium-node
+COPY --from=build /out/bin/node-collector /node-collector
+COPY --from=build /out/lib/* /usr/lib/x86_64-linux-gnu/

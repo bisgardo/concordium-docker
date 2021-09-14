@@ -1,7 +1,7 @@
 # concordium-docker
 
-A collection of scripts and configuration files to build and deploy a containerized node for the
-[Concordium](https://concordium.com) blockchain.
+A collection of scripts and configuration files to build and deploy a containerized,
+dynamically linked node for the [Concordium](https://concordium.com) blockchain.
 
 ## Build
 
@@ -29,24 +29,25 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from caching
 the cloned source code at the current commit.
 
-As of the time of this writing, the newest tag is `1.0.1-0`.
-The current `main` branch of `concordium-node` has some breaking changes in the way CLI arguments are parsed.
-This makes it incompatible with the deployment scripts in the current version of this repo.
-The scripts are updated to become compatible on the branch `next` which will get merged
-once a commit with the new behavior gets tagged in `concordium-node`.
-The updated scripts do not work on commits with the old behavior. 
+As of the time of this writing, the newest tag is `1.1.1-0`.
+Compared to `1.0.1-0`, this version has some breaking changes in the way that CLI arguments are parsed.
+The scripts in this repo have been updated to be compatible with the new version
+at the expense of compatibility with older versions.
+The last commit on branch `main` to work with the old versions is
+[`e67091`](https://github.com/bisgardo/concordium-docker/tree/e67091a4cb579cc3d26283c4bfe54ebab66ca33d).
 
 *Optional*
 
-The build args `ghc_version` and `rust_version` override the default values of 8.10.4 and 1.45.2, respectively.
+The build args `ghc_version` and `rust_version` override the default values of 8.10.4 and 1.53.0, respectively.
 Additionally, the build arg `extra_features` (defaults to `instrumentation`) set
 desired feature flags (`collector` is hardcoded so should not be specified).
 Note that when `instrumentation` is set,
-`concordium-node` must be started with the CLI flag `--prometheus-server`.
+`concordium-node` must be started with one of the arguments (CLI flag or environment variable; see the docs)
+`prometheus-server` or `prometheus-push-gateway` set.
 The feature `profiling` should not be set for reasons explained in the dockerfile.
 
 The full set of supported feature flags may be found in
-[`Cargo.toml`](https://github.com/Concordium/concordium-node/blob/main/concordium-node/Cargo.toml)
+[`Cargo.toml`](https://github.com/Concordium/concordium-node/blob/main/concordium-node/Cargo.toml),
 but it's not well documented.
 
 ### `concordium-node-genesis`
@@ -73,6 +74,25 @@ In case the official source is unavailable, this repo has a backup in `genesis/m
 docker build -t concordium-node-genesis:mainnet-1 --build-arg genesis_file=mainnet-1.dat genesis
 ```
 
+### `node-dashboard`
+
+Image containing the [`node-dashboard`](https://github.com/Concordium/concordium-node-dashboard.git) web app
+for inspecting the state of a locally running node.
+
+To enable the dashboard to communicate with the node over gRPC,
+an [Envoy](https://www.envoyproxy.io/) instance must be running to proxy the data.
+A working Envoy configuration is stored in [`envoy.yaml`](./node-dashboard/envoy.yaml).
+
+Build:
+
+```shell
+docker build -t concordium-node-dashboard:latest --build-arg tag=main node-dashboard
+```
+
+Run:
+
+See [`docker-compose.yaml`](./docker-compose.yaml) for a working run configuration.
+
 ## Build and/or run using Docker Compose
 
 Run a node and collector (image: `concordium-node:<tag>`) with genesis `mainnet-1`
@@ -84,6 +104,7 @@ NODE_TAG=<tag> \
 GENESIS_VERSION=mainnet-1 \
 NODE_IMAGE=concordium-node:<tag> \
 GENESIS_IMAGE=concordium-node-genesis:mainnet-1 \
+NODE_DASHBOARD_IMAGE=concordium-node-dashboard:latest \
 docker-compose up
 ```
 
@@ -95,7 +116,8 @@ The variable `NODE_NAME` sets the name to be displayed on the public dashboard.
 
 The command will automatically build the images from scratch if they don't already exist.
 Set the flag `--no-build` to prevent that.
-To only build the images without starting containers, use the command `... docker-compose build`.
+To only build the images without starting containers, use the command `... docker-compose build`,
+which also supports the option `--build-arg` to override build args in the compose file.
 See the [Compose CLI reference](https://docs.docker.com/compose/reference/)
 for the full list of commands and arguments.
 
@@ -113,6 +135,8 @@ docker run --rm concordium-node:<tag> /concordium-node --help | less
 
 ## CI: Public images
 
+*Note that the public images currently are not up to date*.
+
 A GitHub Actions CI job for building and pushing the images to
 [a public registry](https://hub.docker.com/r/bisgardo/concordium-node) is defined in
 [`./.github/workflows/build-push.yaml`](.github/workflows/build-push.yaml).
@@ -121,8 +145,9 @@ The images may for example be run using the Docker Compose script like so:
 
 ```shell
 export NODE_NAME=my_node
-export NODE_IMAGE=bisgardo/concordium-node:1.0.1-0_0
-export GENESIS_IMAGE=bisgardo/concordium-node-genesis:mainnet-1_0
+export NODE_IMAGE=bisgardo/concordium-node:1.0.1-0_1
+export GENESIS_IMAGE=bisgardo/concordium-node-genesis:mainnet-1
+export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:latest
 docker-compose pull # prevent 'up' from building instead of pulling
 docker-compose up --no-build
 ```

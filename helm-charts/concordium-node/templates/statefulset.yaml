@@ -1,9 +1,10 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "fullname" . }}
   labels: {{ include "labels" . | fromYaml | toJson }}
 spec:
+  serviceName: {{ include "fullname" . }}
   replicas: 1
   selector:
     matchLabels: {{ include "selectorLabels" . | fromYaml | toJson }}
@@ -17,14 +18,16 @@ spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets: {{ toJson . }}
       {{- end }}
-      securityContext: {{ toJson .Values.podSecurityContext }}
+      {{- with .Values.podSecurityContext }}
+      securityContext: {{ toJson . }}
+      {{- end }}
       containers:
       - name: node
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         command:
         - /concordium-node
         - --data-dir=/mnt/data
-        - --config-dir=/mnt/config
+        - --config-dir=/mnt/data
         - --bootstrap-node=bootstrap.mainnet.concordium.software:8888
         - --rpc-server-addr=0.0.0.0
         - --prometheus-server
@@ -37,11 +40,13 @@ spec:
           containerPort: 10000
         - name: metrics
           containerPort: 9090
-        resources: {{ toJson .Values.resources }}
-        securityContext: {{ toJson .Values.securityContext }}
+        {{- with .Values.resources }}
+        resources: {{ toJson . }}
+        {{- end }}
+        {{- with .Values.securityContext }}
+        securityContext: {{ toJson . }}
+        {{- end }}
         volumeMounts:
-        - name: config
-          mountPath: /mnt/config
         - name: data
           mountPath: /mnt/data
       {{- if .Values.nodeName }}
@@ -62,6 +67,10 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /mnt/data
+      enableServiceLinks: false
+      {{- with .Values.restartPolicy }}
+      restartPolicy: {{ . }}
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector: {{ toJson . }}
       {{- end }}
@@ -71,10 +80,13 @@ spec:
       {{- with .Values.tolerations }}
       tolerations: {{ toJson . }}
       {{- end }}
-      volumes:
-      - name: config
-        emptyDir: {}
-      # TODO use proper storage and add a secret with any baker credentials
-      #      (could also contain 'genesis.dat' which would eliminate the need for the init container)
-      - name: data
-        emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: {{ default "standard" .Values.storage.className }}
+      resources:
+        requests:
+          storage: {{ .Values.storage.size }}
