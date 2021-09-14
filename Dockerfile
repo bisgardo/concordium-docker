@@ -32,7 +32,9 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /build
 ARG flatbuffers_tag
-RUN git -c advice.detachedHead=false clone --branch="${flatbuffers_tag}" --depth=1 https://github.com/google/flatbuffers.git .
+# Doing a deep clone because some build step uses 'git describe' to print some version.
+# This failing doesn't crash the build, but it's only 32 MB and it looks better in the logs to not have "fatal" errors.
+RUN git -c advice.detachedHead=false clone --branch="${flatbuffers_tag}" https://github.com/google/flatbuffers.git .
 RUN cmake -G "Unix Makefiles" . && \
     make -j"$(nproc)" && \
     make install
