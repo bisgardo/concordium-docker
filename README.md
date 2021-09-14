@@ -135,8 +135,6 @@ docker run --rm concordium-node:<tag> /concordium-node --help | less
 
 ## CI: Public images
 
-*Note that the public images currently are not up to date*.
-
 A GitHub Actions CI job for building and pushing the images to
 [a public registry](https://hub.docker.com/r/bisgardo/concordium-node) is defined in
 [`./.github/workflows/build-push.yaml`](.github/workflows/build-push.yaml).
@@ -145,7 +143,7 @@ The images may for example be run using the Docker Compose script like so:
 
 ```shell
 export NODE_NAME=my_node
-export NODE_IMAGE=bisgardo/concordium-node:1.0.1-0_1
+export NODE_IMAGE=bisgardo/concordium-node:1.1.1-0_0
 export GENESIS_IMAGE=bisgardo/concordium-node-genesis:mainnet-1
 export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:latest
 docker-compose pull # prevent 'up' from building instead of pulling
