@@ -15,15 +15,14 @@ services:
   node:
     container_name: node
     image: ${NODE_IMAGE}
-    command: >-
-      /concordium-node
-        --data-dir=/data
-        --config-dir=/config
-        --bootstrap-node=bootstrap.mainnet.concordium.software:8888
-        --rpc-server-addr=0.0.0.0
-        --prometheus-server
-        --prometheus-listen-addr=0.0.0.0
-        --no-dnssec
+    entrypoint: /concordium-node
+    environment:
+    - CONCORDIUM_NODE_DATA_DIR=/data
+    - CONCORDIUM_NODE_CONFIG_DIR=/config
+    - CONCORDIUM_NODE_CONNECTION_BOOTSTRAP_NODES=bootstrap.mainnet.concordium.software:8888
+    - CONCORDIUM_NODE_RPC_SERVER_ADDR=0.0.0.0
+    - CONCORDIUM_NODE_PROMETHEUS_SERVER=1
+    - CONCORDIUM_NODE_PROMETHEUS_LISTEN_ADDRESSS=0.0.0.0
     depends_on:
     - genesis
     networks:
@@ -41,11 +40,11 @@ services:
   node-collector:
     container_name: node-collector
     image: ${NODE_IMAGE}
-    command: >-
-      /node-collector
-        --collector-url=http://dashboard.mainnet.concordium.software/nodes/post
-        --grpc-host=http://node:10000
-        --node-name=${NODE_NAME}
+    entrypoint: /node-collector
+    environment:
+    - CONCORDIUM_NODE_COLLECTOR_URL=http://dashboard.mainnet.concordium.software/nodes/post
+    - CONCORDIUM_NODE_COLLECTOR_GRPC_HOST=http://node:10000
+    - CONCORDIUM_NODE_COLLECTOR_NODE_NAME=${NODE_NAME}
     depends_on:
     - node
     networks:

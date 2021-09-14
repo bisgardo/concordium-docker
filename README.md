@@ -29,24 +29,25 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from caching
 the cloned source code at the current commit.
 
-As of the time of this writing, the newest tag is `1.0.1-0`.
-The current `main` branch of `concordium-node` has some breaking changes in the way CLI arguments are parsed.
-This makes it incompatible with the deployment scripts in the current version of this repo.
-The scripts are updated to become compatible on the branch `next` which will get merged
-once a commit with the new behavior gets tagged in `concordium-node`.
-The updated scripts do not work on commits with the old behavior. 
+As of the time of this writing, the newest tag is `1.1.1-0`.
+Compared to `1.0.1-0`, this version has some breaking changes in the way that CLI arguments are parsed.
+The scripts in this repo have been updated to be compatible with the new version
+at the expense of compatibility with older versions.
+The last commit on branch `main` to work with the old versions is
+[`e67091`](https://github.com/bisgardo/concordium-docker/tree/e67091a4cb579cc3d26283c4bfe54ebab66ca33d).
 
 *Optional*
 
-The build args `ghc_version` and `rust_version` override the default values of 8.10.4 and 1.45.2, respectively.
+The build args `ghc_version` and `rust_version` override the default values of 8.10.4 and 1.53.0, respectively.
 Additionally, the build arg `extra_features` (defaults to `instrumentation`) set
 desired feature flags (`collector` is hardcoded so should not be specified).
 Note that when `instrumentation` is set,
-`concordium-node` must be started with the CLI flag `--prometheus-server`.
+`concordium-node` must be started with one of the arguments (CLI flag or environment variable; see the docs)
+`prometheus-server` or `prometheus-push-gateway` set.
 The feature `profiling` should not be set for reasons explained in the dockerfile.
 
 The full set of supported feature flags may be found in
-[`Cargo.toml`](https://github.com/Concordium/concordium-node/blob/main/concordium-node/Cargo.toml)
+[`Cargo.toml`](https://github.com/Concordium/concordium-node/blob/main/concordium-node/Cargo.toml),
 but it's not well documented.
 
 ### `concordium-node-genesis`
@@ -133,6 +134,8 @@ docker run --rm concordium-node:<tag> /concordium-node --help | less
 ```
 
 ## CI: Public images
+
+*Note that the public images currently are not up to date*.
 
 A GitHub Actions CI job for building and pushing the images to
 [a public registry](https://hub.docker.com/r/bisgardo/concordium-node) is defined in
