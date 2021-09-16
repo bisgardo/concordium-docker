@@ -59,8 +59,9 @@ services:
     networks:
     - concordium
     ports:
-    - 8888:8888
-    - 10000:10000
+    - "8888:8888"   # P2P
+    - "10000:10000" # gRPC
+    - "9090:9090"   # Prometheus (metrics)
     volumes:
     - data:/data
     - config:/config
@@ -101,7 +102,7 @@ services:
     networks:
     - concordium
     ports:
-    - "8099:80"
+    - "8099:80" # web
     build:
       context: ./node-dashboard
       args:
