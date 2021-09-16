@@ -12,10 +12,39 @@ services:
       context: genesis
       args:
         genesis_file: ${GENESIS_VERSION}.dat
+  oob_catchup:
+    container_name: node-init-catchup
+    image: busybox:stable
+    environment:
+    - DATA_DIR=/data
+    volumes:
+    - data:/data
+    # Download OOB catchup blob and move it to the expected location in the data volume once done
+    # (this signals to the 'node' container that it may start).
+    entrypoint: |
+      /bin/sh -c '
+        set -eu
+        rm -f "$${DATA_DIR}/import.mdb"
+        wget https://catchup.mainnet.concordium.software/blocks_to_import.mdb -O /tmp/import.mdb
+        mv /tmp/import.mdb "$${DATA_DIR}/import.mdb"
+      '
   node:
     container_name: node
     image: ${NODE_IMAGE}
-    entrypoint: /concordium-node
+    # Wait for the "init" containers 'node-init-genesis' and 'node-init-catchup' to complete
+    # by detecting that the files they provide have been created.
+    # This may be replaced with 'depends_on' conditions, but that was only implemented in a recent,
+    # not yet widely adopted (nor properly documented; see 'https://github.com/docker/docker.github.io/issues/12633')
+    # version of Docker Compose.
+    entrypoint: |
+      /bin/sh -c '
+        set -eu
+        sleep 1 # ensure that the 'node-init-catchup' has had time to delete any old import file
+        until [ -f "$${CONCORDIUM_NODE_DATA_DIR}/genesis.dat" ] && [ -f "$${CONCORDIUM_NODE_DATA_DIR}/import.mdb" ]; do
+          sleep 1
+        done
+        /concordium-node
+      '
     environment:
     - CONCORDIUM_NODE_DATA_DIR=/data
     - CONCORDIUM_NODE_CONFIG_DIR=/config
@@ -23,8 +52,10 @@ services:
     - CONCORDIUM_NODE_RPC_SERVER_ADDR=0.0.0.0
     - CONCORDIUM_NODE_PROMETHEUS_SERVER=1
     - CONCORDIUM_NODE_PROMETHEUS_LISTEN_ADDRESSS=0.0.0.0
+    - CONCORDIUM_NODE_CONSENSUS_IMPORT_BLOCKS_FROM=/data/import.mdb
     depends_on:
     - genesis
+    - oob_catchup
     networks:
     - concordium
     ports:
