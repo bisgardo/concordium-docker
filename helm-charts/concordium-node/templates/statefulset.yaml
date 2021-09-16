@@ -61,9 +61,7 @@ spec:
       initContainers:
       - name: init-genesis
         image: "{{ .Values.genesisImage.repository }}:{{ .Values.genesisImage.tag }}"
-        env:
-        - name: DATA_DIR
-          value: /mnt/data
+        command: cp /genesis.dat /mnt/data/genesis.dat
         volumeMounts:
         - name: data
           mountPath: /mnt/data
