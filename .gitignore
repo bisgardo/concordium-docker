@@ -2,3 +2,4 @@
 !.*ignore
 !.*lint
 !.github
+env/
