@@ -19,11 +19,6 @@ RUN git \
     --depth=1 \
     https://github.com/Concordium/concordium-node.git \
     .
-# Use lock files from cache if they aren't already present ('-n' flag to 'mv' prevents overwrite).
-# We only cache the lock files for the components that we actually build.
-COPY ./cache /cache
-RUN mv -n /cache/concordium-node/Cargo.lock ./concordium-node/Cargo.lock && \
-    mv -n /cache/concordium-base/rust-src/Cargo.lock ./concordium-base/rust-src/Cargo.lock
 
 # Clone and compile 'flatc'.
 FROM debian:${debian_base_image_tag} AS flatbuffers
