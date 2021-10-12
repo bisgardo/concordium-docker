@@ -41,7 +41,7 @@ jobs:
       uses: actions/checkout@v2
     - name: Log in to Docker Hub
       run: docker login --username "${{ env.user }}" --password-stdin <<< "${{ secrets.DOCKERHUB_ACCESS_TOKEN }}"
-    - name: Build and push node and genesis images
+    - name: Build and push Docker images
       run: |
         export NODE_TAG="${{ env.node_tag }}"
         export GENESIS_VERSION="${{ env.genesis_version }}"

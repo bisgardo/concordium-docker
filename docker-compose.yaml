@@ -16,7 +16,7 @@ services:
     image: busybox:stable
     volumes:
     - data:/data
-    entrypoint: wget -q https://catchup.mainnet.concordium.software/blocks_to_import.mdb -O /data/import.mdb
+    entrypoint: wget -q https://catchup.mainnet.concordium.software/blocks_to_import.mdb -O /data/blocks.mdb
   node:
     container_name: node
     image: ${NODE_IMAGE}
@@ -28,7 +28,7 @@ services:
     - CONCORDIUM_NODE_RPC_SERVER_ADDR=0.0.0.0
     - CONCORDIUM_NODE_PROMETHEUS_SERVER=1
     - CONCORDIUM_NODE_PROMETHEUS_LISTEN_ADDRESSS=0.0.0.0
-    - CONCORDIUM_NODE_CONSENSUS_IMPORT_BLOCKS_FROM=/data/import.mdb
+    - CONCORDIUM_NODE_CONSENSUS_IMPORT_BLOCKS_FROM=/data/blocks.mdb
     # Defer container start until the init containers have completed successfully.
     # Note that no logs are emitted on stdout until all containers have started.
     # Also, this syntax requires Docker Compose v. 1.29+.
@@ -55,7 +55,7 @@ services:
     image: ${NODE_IMAGE}
     entrypoint: /node-collector
     environment:
-    - CONCORDIUM_NODE_COLLECTOR_URL=http://dashboard.mainnet.concordium.software/nodes/post
+    - CONCORDIUM_NODE_COLLECTOR_URL=https://dashboard.mainnet.concordium.software/nodes/post
     - CONCORDIUM_NODE_COLLECTOR_GRPC_HOST=http://node:10000
     - CONCORDIUM_NODE_COLLECTOR_NODE_NAME=${NODE_NAME}
     depends_on:
