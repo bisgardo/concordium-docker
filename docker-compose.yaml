@@ -16,7 +16,11 @@ services:
     image: busybox:stable
     volumes:
     - data:/data
-    entrypoint: wget -q https://catchup.mainnet.concordium.software/blocks_to_import.mdb -O /data/blocks.mdb
+    entrypoint: |
+      /bin/sh -c '
+        [ -f /data/blocks.mdb ] ||
+          wget -q https://catchup.mainnet.concordium.software/blocks_to_import.mdb -O /data/blocks.mdb
+      '
   node:
     container_name: node
     image: ${NODE_IMAGE}
