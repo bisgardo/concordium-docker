@@ -29,9 +29,7 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from caching
 the cloned source code at the current commit.
 
-As of the time of this writing, the currently active tag is `1.1.3-1`.
-Versions older than `1.1.0-0` are no longer supported by the scripts in this repository
-(nor will they be compatible with the Concordium Mainnet in the near future).
+As of the time of this writing, the currently active tag is `3.0.0-0`.
 
 *Optional*
 
@@ -140,7 +138,7 @@ The images may for example be run using the Docker Compose script like so:
 
 ```shell
 export NODE_NAME=my_node
-export NODE_IMAGE=bisgardo/concordium-node:1.1.3-1_0
+export NODE_IMAGE=bisgardo/concordium-node:3.0.0-0_0
 export GENESIS_IMAGE=bisgardo/concordium-node-genesis:mainnet-1
 export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:latest
 docker-compose pull # prevent 'up' from building instead of pulling
