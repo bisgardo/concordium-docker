@@ -62,19 +62,19 @@ COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
 ARG extra_features
 RUN cargo build --manifest-path=./concordium-node/Cargo.toml --release --features="collector,${extra_features}"
 
-# Copy artifacts to '/out'.
+# Copy artifacts to '/target'.
 ARG ghc_version
-RUN mkdir -p /out/bin && \
+RUN mkdir -p /target/bin && \
     cp \
         ./concordium-node/target/release/concordium-node \
         ./concordium-node/target/release/node-collector \
-        /out/bin && \
-    mkdir -p /out/lib && \
-    cp ./concordium-base/rust-src/target/release/*.so /out/lib && \
-    cp ./concordium-consensus/smart-contracts/lib/*.so /out/lib && \
-    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /out/lib && \
-    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /out/lib && \
-    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /out/lib
+        /target/bin && \
+    mkdir -p /target/lib && \
+    cp ./concordium-base/rust-src/target/release/*.so /target/lib && \
+    cp ./concordium-consensus/smart-contracts/lib/*.so /target/lib && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /target/lib
 
 # Result image.
 FROM debian:${debian_base_image_tag}
@@ -89,6 +89,9 @@ EXPOSE 9090
 # GRPC port ('concordium-node').
 EXPOSE 10000
 
-COPY --from=build /out/bin/concordium-node /concordium-node
-COPY --from=build /out/bin/node-collector /node-collector
-COPY --from=build /out/lib/* /usr/lib/x86_64-linux-gnu/
+COPY --from=build /target/bin/concordium-node /concordium-node
+COPY --from=build /target/bin/node-collector /node-collector
+COPY --from=build /target/lib/* /usr/local/lib/
+
+# Reconfigure dynamic linker to ensure that the shared libraries (in '/usr/local/lib') get loaded.
+RUN ldconfig
