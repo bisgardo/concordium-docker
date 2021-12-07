@@ -96,6 +96,7 @@ Run a node and collector (image: `concordium-node:<tag>`) with genesis `mainnet-
 ```shell
 NODE_NAME=my_node \
 NODE_TAG=<tag> \
+DOMAIN=mainnet.concordium.software \
 GENESIS_VERSION=mainnet-1 \
 NODE_IMAGE=concordium-node:<tag> \
 GENESIS_IMAGE=concordium-node-genesis:mainnet-1 \
@@ -109,6 +110,15 @@ This will spin up the setup configured in [`docker-compose.yaml`](./docker-compo
 
 The variable `NODE_NAME` sets the name to be displayed on the public dashboard.
 
+The variable `DOMAIN` determines what concrete network the node should join.
+The publicly available official options are:
+
+- `mainnet.concordium.software`
+- `testnet.concordium.com`
+
+Persistent volumes are namespaced by the domain. This allows one to join different networks at different times without having to delete data.
+Since ports and container names are fixed, running multiple nodes at the same time with the current setup would require a few modifications.
+
 The command will automatically build the images from scratch if they don't already exist.
 Set the flag `--no-build` to prevent that.
 To only build the images without starting containers, use the command `... docker-compose build`,
@@ -116,7 +126,7 @@ which also supports the option `--build-arg` to override build args in the compo
 See the [Compose CLI reference](https://docs.docker.com/compose/reference/)
 for the full list of commands and arguments.
 
-Running a node without Docker Compose or some other orchestration tool is cumbersome but obviously possible:
+Running a node without Docker Compose or some other orchestration tool is cumbersome but of course possible:
 [Look up](https://docs.docker.com/compose/compose-file/compose-file-v3/) the features used in the Compose file
 and [find](https://docs.docker.com/engine/reference/commandline/run/) the corresponding `docker run` args.
 
@@ -138,6 +148,7 @@ The images may for example be run using the Docker Compose script like so:
 
 ```shell
 export NODE_NAME=my_node
+export DOMAIN=mainnet.concordium.software
 export NODE_IMAGE=bisgardo/concordium-node:3.0.0-0_0
 export GENESIS_IMAGE=bisgardo/concordium-node-genesis:mainnet-1
 export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:latest
