@@ -13,13 +13,14 @@ services:
         genesis_file: ${GENESIS_VERSION}.dat
   oob_catchup:
     container_name: node-init-catchup
-    image: busybox:stable
+    image: curlimages/curl:latest
+    user: root
     volumes:
     - data:/data
     entrypoint: |
       /bin/sh -c '
         [ -f /data/blocks.mdb ] ||
-          wget -q https://catchup.mainnet.concordium.software/blocks_to_import.mdb -O /data/blocks.mdb
+          curl -sSf https://catchup.mainnet.concordium.software/blocks_to_import.mdb -o /data/blocks.mdb
       '
   node:
     container_name: node
