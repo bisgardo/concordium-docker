@@ -47,27 +47,21 @@ but it's not well documented.
 
 ### `concordium-node-genesis`
 
-Micro image that just holds a genesis data file for the purpose of copying it into the node container on startup.
+Micro image that holds a genesis data file for the purpose of copying it into the node container on startup.
 
-Build:
+This was originally the preferred method of injecting the file,
+but the node now allows its location to be configurable,
+allowing it to be passed as a simple bind mount.
 
-```shell
-docker build -t concordium-node-genesis:mainnet-0 ./genesis
-```
+To this end, the following genesis files are located in directory [`genesis`](./genesis):
+- `mainnet-0.dat`: Initial genesis data for the mainnet ([source](https://distribution.mainnet.concordium.software/data/genesis.dat)).
+- `testnet-0.dat`: Initial genesis data for the current testnet ([source](https://distribution.testnet.concordium.com/data/genesis.dat)).
 
-The image is built with the [initial genesis file](https://distribution.mainnet.concordium.software/data/genesis.dat)
-of the Concordium mainnet and tagged accordingly.
+The directory also holds the now-unused dockerfile for the genesis image. See commit 17dde7d for the old instructions.
 
-*Optional*
-
-The build arg `genesis_file` overrides the genesis file copied into the image.
-The file may be specified as a URL or a file located in the `genesis` folder (and the path given relative to this folder).
-
-In case the official source is unavailable, this repo has a backup in `genesis/mainnet-0.dat` which may be used instead: 
-
-```shell
-docker build -t concordium-node-genesis:mainnet-0 --build-arg genesis_file=mainnet-0.dat ./genesis
-```
+Note that the genesis file was renamed in commit cf9f7fe.
+The corresponding [image](https://hub.docker.com/layers/164803185/bisgardo/concordium-node-genesis/mainnet-1/images/sha256-d4846eceaa6a6b75c1cdfb3d8222aa27be2a9f51acadcb82682ec4efd24dd886?context=repo)
+with the old name is deprecated and will be removed.
 
 ### `node-dashboard`
 
@@ -97,9 +91,8 @@ Run a node and collector (image: `concordium-node:<tag>`) with genesis `mainnet-
 NODE_NAME=my_node \
 NODE_TAG=<tag> \
 DOMAIN=mainnet.concordium.software \
-GENESIS_VERSION=mainnet-0 \
+GENESIS_DATA_FILE=./genesis/mainnet-0.dat \
 NODE_IMAGE=concordium-node:<tag> \
-GENESIS_IMAGE=concordium-node-genesis:mainnet-0 \
 NODE_DASHBOARD_IMAGE=concordium-node-dashboard:node-<tag> \
 docker-compose up
 ```
@@ -149,8 +142,8 @@ The images may for example be run using the Docker Compose script like so:
 ```shell
 export NODE_NAME=my_node
 export DOMAIN=mainnet.concordium.software
+export GENESIS_DATA_FILE=./genesis/mainnet-0.dat
 export NODE_IMAGE=bisgardo/concordium-node:3.0.0-0_1
-export GENESIS_IMAGE=bisgardo/concordium-node-genesis:mainnet-0
 export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:node-3.0.0-0_1
 docker-compose pull # prevent 'up' from building instead of pulling
 docker-compose up --no-build

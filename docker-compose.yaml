@@ -1,35 +1,25 @@
 version: '3.9'
 services:
-  genesis:
-    container_name: node-init-genesis
-    image: ${GENESIS_IMAGE}
-    entrypoint: cp /genesis.dat /data/genesis.dat
-    network_mode: none
-    volumes:
-    - data:/data
-    build:
-      context: genesis
-      args:
-        genesis_file: ${GENESIS_VERSION}.dat
   oob_catchup:
     container_name: node-init-catchup
     image: curlimages/curl:latest
     user: root
     volumes:
-    - data:/data
+    - data:/mnt/data
     entrypoint: |
       /bin/sh -c '
         [ -f /data/blocks.mdb ] ||
-          curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /data/blocks.mdb
+          curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /mnt/data/blocks.mdb
       '
   node:
     container_name: node
     image: ${NODE_IMAGE}
     entrypoint: /concordium-node
     environment:
-    - CONCORDIUM_NODE_DATA_DIR=/data
-    - CONCORDIUM_NODE_CONFIG_DIR=/config
-    - CONCORDIUM_NODE_CONSENSUS_IMPORT_BLOCKS_FROM=/data/blocks.mdb
+    - CONCORDIUM_NODE_DATA_DIR=/mnt/data
+    - CONCORDIUM_NODE_CONFIG_DIR=/mnt/config
+    - CONCORDIUM_NODE_CONSENSUS_IMPORT_BLOCKS_FROM=/mnt/data/blocks.mdb
+    - CONCORDIUM_NODE_CONSENSUS_GENESIS_DATA_FILE=/mnt/genesis.dat
     - CONCORDIUM_NODE_CONNECTION_BOOTSTRAP_NODES=bootstrap.${DOMAIN}:8888
     - CONCORDIUM_NODE_RPC_SERVER_ADDR=0.0.0.0
     - CONCORDIUM_NODE_PROMETHEUS_SERVER=1
@@ -38,8 +28,6 @@ services:
     # Note that no logs are emitted on stdout until all containers have started.
     # Also, this syntax requires Docker Compose v. 1.29+.
     depends_on:
-      genesis:
-        condition: service_completed_successfully
       oob_catchup:
         condition: service_completed_successfully
     networks:
@@ -49,8 +37,9 @@ services:
     - "10000:10000" # gRPC
     - "9090:9090"   # Prometheus (metrics)
     volumes:
-    - data:/data
-    - config:/config
+    - ${GENESIS_DATA_FILE}:/mnt/genesis.dat
+    - data:/mnt/data
+    - config:/mnt/config
     build:
       context: .
       args:
