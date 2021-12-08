@@ -9,14 +9,14 @@ on: # yamllint disable-line rule:truthy
       genesis_version:
         description: 'Genesis version'
         required: true
-        default: 'mainnet-1'
+        default: 'mainnet-0'
       node_image_tag:
         description: 'Node image tag'
         required: true
       genesis_image_tag:
         description: 'Genesis image tag'
         required: true
-        default: 'mainnet-1'
+        default: 'mainnet-0'
       node_dashboard_image_tag:
         description: 'Node Dashboard image tag'
         required: true

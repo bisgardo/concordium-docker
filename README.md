@@ -52,7 +52,7 @@ Micro image that just holds a genesis data file for the purpose of copying it in
 Build:
 
 ```shell
-docker build -t concordium-node-genesis:mainnet-1 genesis
+docker build -t concordium-node-genesis:mainnet-0 genesis
 ```
 
 The image is built with the [initial genesis file](https://distribution.mainnet.concordium.software/data/genesis.dat)
@@ -63,10 +63,10 @@ of the Concordium mainnet and tagged accordingly.
 The build arg `genesis_file` overrides the genesis file copied into the image.
 The file may be specified as a URL or a file located in the `genesis` folder (and the path given relative to this folder).
 
-In case the official source is unavailable, this repo has a backup in `genesis/mainnet-1.dat` which may be used instead: 
+In case the official source is unavailable, this repo has a backup in `genesis/mainnet-0.dat` which may be used instead: 
 
 ```shell
-docker build -t concordium-node-genesis:mainnet-1 --build-arg genesis_file=mainnet-1.dat genesis
+docker build -t concordium-node-genesis:mainnet-0 --build-arg genesis_file=mainnet-0.dat genesis
 ```
 
 ### `node-dashboard`
@@ -90,16 +90,16 @@ See [`docker-compose.yaml`](./docker-compose.yaml) for a working run configurati
 
 ## Build and/or run using Docker Compose
 
-Run a node and collector (image: `concordium-node:<tag>`) with genesis `mainnet-1`
-(image: `concordium-node-genesis:mainnet-1`):
+Run a node and collector (image: `concordium-node:<tag>`) with genesis `mainnet-0`
+(image: `concordium-node-genesis:mainnet-0`):
 
 ```shell
 NODE_NAME=my_node \
 NODE_TAG=<tag> \
 DOMAIN=mainnet.concordium.software \
-GENESIS_VERSION=mainnet-1 \
+GENESIS_VERSION=mainnet-0 \
 NODE_IMAGE=concordium-node:<tag> \
-GENESIS_IMAGE=concordium-node-genesis:mainnet-1 \
+GENESIS_IMAGE=concordium-node-genesis:mainnet-0 \
 NODE_DASHBOARD_IMAGE=concordium-node-dashboard:latest \
 docker-compose up
 ```
@@ -150,7 +150,7 @@ The images may for example be run using the Docker Compose script like so:
 export NODE_NAME=my_node
 export DOMAIN=mainnet.concordium.software
 export NODE_IMAGE=bisgardo/concordium-node:3.0.0-0_0
-export GENESIS_IMAGE=bisgardo/concordium-node-genesis:mainnet-1
+export GENESIS_IMAGE=bisgardo/concordium-node-genesis:mainnet-0
 export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:latest
 docker-compose pull # prevent 'up' from building instead of pulling
 docker-compose up --no-build

@@ -12,7 +12,7 @@ image:
 # genesisImage is the image repository and tag to used for the 'init-genesis` container.
 genesisImage:
   repository: bisgardo/concordium-node-genesis
-  tag: "mainnet-1"
+  tag: "mainnet-0"
 
 # service configures the service type and the ports of the individual endpoints exposed by the service.
 service:
