@@ -17,10 +17,6 @@ on: # yamllint disable-line rule:truthy
         description: 'Genesis image tag'
         required: true
         default: 'mainnet-0'
-      node_dashboard_image_tag:
-        description: 'Node Dashboard image tag'
-        required: true
-        default: 'latest'
 
 env:
   user: bisgardo
@@ -31,7 +27,7 @@ env:
   genesis_version: '${{ github.event.inputs.genesis_version }}'
   node_image_tag: '${{ github.event.inputs.node_image_tag }}'
   genesis_image_tag: '${{ github.event.inputs.genesis_image_tag }}'
-  node_dashboard_image_tag: '${{ github.event.inputs.node_dashboard_image_tag }}'
+  node_dashboard_image_tag: 'node-${{ github.event.inputs.node_image_tag }}'
 
 jobs:
   build-push:
