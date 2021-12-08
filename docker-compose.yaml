@@ -8,7 +8,7 @@ services:
     - data:/mnt/data
     entrypoint: |
       /bin/sh -c '
-        [ -f /data/blocks.mdb ] ||
+        [ -f /mnt/data/blocks.mdb ] ||
           curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /mnt/data/blocks.mdb
       '
   node:
