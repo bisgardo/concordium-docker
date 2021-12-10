@@ -109,8 +109,9 @@ The publicly available official options are:
 - `mainnet.concordium.software`
 - `testnet.concordium.com`
 
-Persistent volumes are namespaced by the domain. This allows one to join different networks at different times without having to delete data.
-Since ports and container names are fixed, running multiple nodes at the same time with the current setup would require a few modifications.
+Persistent volumes and container names are namespaced by the domain
+in order to allow switching between networks without having to delete data and existing containers.
+Note that because ports are fixed, running multiple nodes at the same time will require a few modifications to the current setup.
 
 The command will automatically build the images from scratch if they don't already exist.
 Set the flag `--no-build` to prevent that.
