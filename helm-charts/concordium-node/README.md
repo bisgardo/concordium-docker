@@ -38,7 +38,6 @@ Once installed, a test may be run on the release to verify that it's running:
 helm test concordium-node
 ```
 
-
 ## Uninstall
 
 ```shell

@@ -29,7 +29,7 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from caching
 the cloned source code at the current commit.
 
-As of the time of this writing, the currently active tag is `3.0.0-0`.
+The currently active tag (as of 2021-12-10) is `3.0.0-0`.
 
 *Optional*
 
@@ -149,8 +149,8 @@ docker-compose pull # prevent 'up' from building instead of pulling
 docker-compose up --no-build
 ```
 
-Feel free to use these images for testing and experimentation but never trust
-random internet strangers' binaries with anything secret or valuable.
+Feel free to use these images for testing and experimentation,
+but never trust random internet strangers' binaries with anything secret or valuable.
 
 Instead, use the
 [officially released](https://developer.concordium.software/en/mainnet/net/guides/run-node-ubuntu.html)
