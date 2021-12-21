@@ -1,18 +1,17 @@
 version: '3.9'
 services:
-  oob_catchup:
-    container_name: ${DOMAIN}_node-oob-catchup
+  node_oob_catchup:
     image: curlimages/curl:latest
     user: root
     volumes:
     - data:/mnt/data
-    entrypoint: |
-      /bin/sh -c '
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
         [ -f /mnt/data/blocks.mdb ] ||
           curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /mnt/data/blocks.mdb
-      '
   node:
-    container_name: ${DOMAIN}_node
     image: ${NODE_IMAGE}
     entrypoint: /concordium-node
     environment:
@@ -28,7 +27,7 @@ services:
     # Note that no logs are emitted on stdout until all containers have started.
     # Also, this syntax requires Docker Compose v. 1.29+.
     depends_on:
-      oob_catchup:
+      node_oob_catchup:
         condition: service_completed_successfully
     networks:
     - concordium
@@ -45,7 +44,6 @@ services:
       args:
         tag: ${NODE_TAG}
   node-collector:
-    container_name: ${DOMAIN}_node-collector
     image: ${NODE_IMAGE}
     entrypoint: /node-collector
     environment:
@@ -57,7 +55,6 @@ services:
     networks:
     - concordium
   node-dashboard-grpc-proxy:
-    container_name: ${DOMAIN}_node-dashboard-grpc-proxy
     image: envoyproxy/envoy:v1.18-latest
     entrypoint: /usr/local/bin/envoy --config-path /etc/envoy/envoy.yaml
     depends_on:
@@ -70,7 +67,6 @@ services:
     volumes:
     - ./node-dashboard/envoy.yaml:/etc/envoy/envoy.yaml:ro
   node-dashboard:
-    container_name: ${DOMAIN}_node-dashboard
     image: ${NODE_DASHBOARD_IMAGE}
     depends_on:
     - node-dashboard-grpc-proxy
@@ -84,8 +80,6 @@ services:
         tag: main
 volumes:
   data:
-    name: ${DOMAIN}_data
   config:
-    name: ${DOMAIN}_config
 networks:
   concordium:

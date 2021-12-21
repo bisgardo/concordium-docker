@@ -84,8 +84,7 @@ See [`docker-compose.yaml`](./docker-compose.yaml) for a working run configurati
 
 ## Build and/or run using Docker Compose
 
-Run a node and collector (image: `concordium-node:<tag>`) with genesis `mainnet-0`
-(image: `concordium-node-genesis:mainnet-0`):
+Run a mainnet node and collector with genesis `mainnet-0`:
 
 ```shell
 NODE_NAME=my_node \
@@ -94,7 +93,7 @@ DOMAIN=mainnet.concordium.software \
 GENESIS_DATA_FILE=./genesis/mainnet-0.dat \
 NODE_IMAGE=concordium-node:<tag> \
 NODE_DASHBOARD_IMAGE=concordium-node-dashboard:node-<tag> \
-docker-compose up
+docker-compose --project-name=mainnet up
 ```
 
 where `<tag>` is as described above.
@@ -109,9 +108,9 @@ The publicly available official options are:
 - `mainnet.concordium.software`
 - `testnet.concordium.com`
 
-Persistent volumes and container names are namespaced by the domain
-in order to allow switching between networks without having to delete data and existing containers.
-Note that because ports are fixed, running multiple nodes at the same time will require a few modifications to the current setup.
+Setting the flag `--project-name=<name>` to `docker-compose up` prepends the provided name to containers and other persistent resources,
+making it possible to switch between networks without having to delete data and existing containers.
+Note that because ports are fixed, running multiple nodes at the same time is not supported with the current setup.
 
 The command will automatically build the images from scratch if they don't already exist.
 Set the flag `--no-build` to prevent that.
@@ -138,7 +137,7 @@ A GitHub Actions CI job for building and pushing the images to
 [a public registry](https://hub.docker.com/r/bisgardo/concordium-node) is defined in
 [`./.github/workflows/build-push.yaml`](.github/workflows/build-push.yaml).
 
-The images may for example be run using the Docker Compose script like so:
+A mainnet node setup may for example be run using the Docker Compose script like so:
 
 ```shell
 export NODE_NAME=my_node
@@ -147,7 +146,7 @@ export GENESIS_DATA_FILE=./genesis/mainnet-0.dat
 export NODE_IMAGE=bisgardo/concordium-node:3.0.0-0_1
 export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:node-3.0.0-0_1
 docker-compose pull # prevent 'up' from building instead of pulling
-docker-compose up --no-build
+docker-compose --project-name=mainnet up --no-build
 ```
 
 Feel free to use these images for testing and experimentation,
