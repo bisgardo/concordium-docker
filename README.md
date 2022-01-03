@@ -29,7 +29,7 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from caching
 the cloned source code at the current commit.
 
-The currently active tag (as of 2021-12-10) is `3.0.0-0`.
+The currently active tag (as of 2022-01-03) is `3.0.1-0`.
 
 *Optional*
 
@@ -143,8 +143,8 @@ A mainnet node setup may for example be run using the Docker Compose script like
 export NODE_NAME=my_node
 export DOMAIN=mainnet.concordium.software
 export GENESIS_DATA_FILE=./genesis/mainnet-0.dat
-export NODE_IMAGE=bisgardo/concordium-node:3.0.0-0_1
-export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:node-3.0.0-0_1
+export NODE_IMAGE=bisgardo/concordium-node:3.0.1-0_0
+export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:node-3.0.1-0_0
 docker-compose pull # prevent 'up' from building instead of pulling
 docker-compose --project-name=mainnet up --no-build
 ```
