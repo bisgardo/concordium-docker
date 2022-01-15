@@ -6,11 +6,11 @@ services:
     volumes:
     - data:/mnt/data
     entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        [ -f /mnt/data/blocks.mdb ] ||
-          curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /mnt/data/blocks.mdb
+    - /bin/sh
+    - -c
+    - |
+      [ -f /mnt/data/blocks.mdb ] ||
+        curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /mnt/data/blocks.mdb
   node:
     image: ${NODE_IMAGE}
     entrypoint: /concordium-node
