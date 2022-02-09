@@ -15,7 +15,7 @@ Dual-purpose Docker image containing the applications `concordium-node` and `nod
 (for reporting state to the public [dashboard](https://dashboard.mainnet.concordium.software/)).
 The two applications are intended to be run in separate containers instantiated from this image.
 
-May be build with Docker using the following command or using Docker Compose as described below:
+The image may be build with Docker using the following command or using Docker Compose as described below:
 
 ```shell
 docker build -t concordium-node:<tag> --build-arg tag=<tag> .
@@ -84,7 +84,14 @@ See [`docker-compose.yaml`](./docker-compose.yaml) for a working run configurati
 
 ## Build and/or run using Docker Compose
 
-Run a mainnet node and collector with genesis `mainnet-0`:
+The setup relies on features that are only available in relatively recent versions of Docker Compose.
+The `requrements.txt` file specifies a compatible version (the latest v1 release at the time of this writing)
+which may be installed (preferably in a [virtualenv](https://docs.python.org/3/library/venv.html))
+using `pip install -r requirements.txt`.
+
+The setup has not yet been tested with [Compose v2](https://docs.docker.com/compose/cli-command/).
+
+To run a node and collector with genesis `mainnet-0` on the mainnet network, adjust and run the following command:
 
 ```shell
 NODE_NAME=my_node \
