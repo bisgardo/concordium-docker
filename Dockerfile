@@ -37,7 +37,7 @@ RUN cmake -G "Unix Makefiles" . && \
 # Build 'concordium-node'.
 FROM haskell:${ghc_version}-${debian_base_image_tag} AS build
 RUN apt-get update && \
-    apt-get install -y liblmdb-dev libpq-dev libssl-dev libunbound-dev && \
+    apt-get install -y liblmdb-dev libpq-dev libssl-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Rust.
