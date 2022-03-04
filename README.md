@@ -156,6 +156,15 @@ docker-compose pull # prevent 'up' from building instead of pulling
 docker-compose --project-name=mainnet up --no-build
 ```
 
+The convenience script `run.sh` that loads the parameters from a `<network>.env` file
+simplifies this into
+
+```shell
+NODE_NAME=my_node ./run.sh mainnet
+```
+
+Working environment files are provided for mainnet and testnet.
+
 Feel free to use these images for testing and experimentation,
 but never trust random internet strangers' binaries with anything secret or valuable.
 
