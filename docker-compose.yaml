@@ -2,7 +2,7 @@ version: '3.9'
 services:
   node_oob_catchup:
     image: curlimages/curl:latest
-    user: root
+    user: 1000
     volumes:
     - data:/mnt/data
     entrypoint:
@@ -13,6 +13,7 @@ services:
         curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /mnt/data/blocks.mdb
   node:
     image: ${NODE_IMAGE}
+    user: 1000
     entrypoint: /concordium-node
     environment:
     - CONCORDIUM_NODE_DATA_DIR=/mnt/data
@@ -45,6 +46,7 @@ services:
         tag: ${NODE_TAG}
   node-collector:
     image: ${NODE_IMAGE}
+    user: 1000
     entrypoint: /node-collector
     environment:
     - CONCORDIUM_NODE_COLLECTOR_URL=https://dashboard.${DOMAIN}/nodes/post
@@ -56,6 +58,7 @@ services:
     - concordium
   node-dashboard-grpc-proxy:
     image: envoyproxy/envoy:v1.18-latest
+    user: 1000
     entrypoint: /usr/local/bin/envoy --config-path /etc/envoy/envoy.yaml
     depends_on:
     - node
@@ -68,6 +71,7 @@ services:
     - ./node-dashboard/envoy.yaml:/etc/envoy/envoy.yaml:ro
   node-dashboard:
     image: ${NODE_DASHBOARD_IMAGE}
+    user: 1000
     depends_on:
     - node-dashboard-grpc-proxy
     networks:
