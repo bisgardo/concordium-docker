@@ -13,8 +13,6 @@ if [ -z "${NODE_NAME-}" ]; then
 fi
 
 network="${1}"
-shift
-docker_compose_up_args=("${@}")
 
 env_file="./${network}.env"
 if ! [ -f "${env_file}" ]; then
@@ -28,5 +26,5 @@ fi
 
 # Force Compose to start system with pulled images
 # rather than building them from scratch.
-#docker-compose --env-file="${env_file}" pull
-docker-compose --env-file="${env_file}" up "${docker_compose_up_args[@]}"
+docker-compose --env-file="${env_file}" pull
+docker-compose --env-file="${env_file}" up --no-build
