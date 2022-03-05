@@ -77,10 +77,10 @@ RUN stack build --stack-yaml=./concordium-consensus/stack.yaml
 
 # Copy artifacts to '/out'.
 ARG ghc_version
-RUN mkdir -p /out/lib && \
-    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /out/lib && \
-    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /out/lib && \
-    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /out/lib
+RUN mkdir -p /out/lib/local /out/lib/snapshot /out/lib/ghc && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /out/lib/local && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /out/lib/snapshot && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /out/lib/ghc
 
 FROM rust:${rust_version}-${debian_base_image_tag} AS build-node
 RUN apt-get update && \
@@ -92,41 +92,48 @@ COPY --from=source /source .
 # Copy flatbuffer compiler that was built in a previous step.
 COPY --from=build-flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
 
-# Copy libraries (see 'concordium-node/build.rs' - note that versions are hardcoded in that script)...
-COPY --from=build-consensus /out/lib/libHSconcordium-consensus-*  /consensus-libs/libHSconcordium-consensus-0.1.0.0.so
-COPY --from=build-consensus /out/lib/libHSconcordium-base-* /consensus-libs/libHSconcordium-base-0.1.0.0.so
-COPY --from=build-consensus /out/lib/libHSlmdb-* /consensus-libs/libHSlmdb-0.2.5.so
+RUN apt-get update && \
+    apt-get install -y curl less jq git tree mlocate && \
+    rm -rf /var/lib/apt/lists/* && \
+    updatedb
 
-# TODO Some build script magic/fix thing...
+# Copy libraries to locations where the build script ('concordium-node/build.rs') will find them.
+# A fake 'stack' command will point the script to the relevant subfolder of '/concordium-libs'.
+ARG ghc_version
+COPY --from=build-consensus /out/lib/local /consensus-libs/local/lib/x86_64-linux-ghc-8.10.4
+COPY --from=build-consensus /out/lib/ghc /consensus-libs/ghc/rts
+COPY ./fake-stack.sh /usr/local/bin/stack
+
+COPY --from=build-consensus /out/lib/snapshot /out/lib/snapshot
 
 # Compile 'concordium-node' (Rust, depends on consensus).
 # Note that feature 'profiling' implies 'static' (i.e. static linking).
 # As the build prodecure assumes dynamic linking, this should not be used.
 ARG extra_features
-RUN CONCORDIUM_HASKELL_ROOT=/consensus-libs cargo build --manifest-path=./concordium-node/Cargo.toml --release --features="collector,${extra_features}"
+RUN EXTRA_LIBS=/out/lib/snapshot cargo build --manifest-path=./concordium-node/Cargo.toml --release --features="collector,${extra_features}" || cat /stack.out
 
-# Copy artifacts to '/out'.
-RUN mkdir -p /out/bin && \
-    cp \
-        ./concordium-node/target/release/concordium-node \
-        ./concordium-node/target/release/node-collector \
-        /out/bin
-
-# Result image.
-FROM debian:${debian_base_image_tag}
-RUN apt-get update && \
-    apt-get install -y ca-certificates unbound libpq-dev liblmdb-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-# P2P listen port ('concordium-node').
-EXPOSE 8888
-# Prometheus port ('concordium-node').
-EXPOSE 9090
-# GRPC port ('concordium-node').
-EXPOSE 10000
-
-COPY --from=build-crypto /build/target/release/*.so /usr/lib/x86_64-linux-gnu/
-COPY --from=build-wasm /build/wasm-chain-integration/target/release/*.so /usr/lib/x86_64-linux-gnu/
-COPY --from=build-consensus /out/lib/*.so /usr/lib/x86_64-linux-gnu/
-COPY --from=build-node /out/bin/concordium-node /concordium-node
-COPY --from=build-node /out/bin/node-collector /node-collector
+## Copy artifacts to '/out'.
+#RUN mkdir -p /out/bin && \
+#    cp \
+#        ./concordium-node/target/release/concordium-node \
+#        ./concordium-node/target/release/node-collector \
+#        /out/bin
+#
+## Result image.
+#FROM debian:${debian_base_image_tag}
+#RUN apt-get update && \
+#    apt-get install -y ca-certificates unbound libpq-dev liblmdb-dev && \
+#    rm -rf /var/lib/apt/lists/*
+#
+## P2P listen port ('concordium-node').
+#EXPOSE 8888
+## Prometheus port ('concordium-node').
+#EXPOSE 9090
+## GRPC port ('concordium-node').
+#EXPOSE 10000
+#
+#COPY --from=build-crypto /build/target/release/*.so /usr/lib/x86_64-linux-gnu/
+#COPY --from=build-wasm /build/wasm-chain-integration/target/release/*.so /usr/lib/x86_64-linux-gnu/
+#COPY --from=build-consensus /out/lib/*/*.so /usr/lib/x86_64-linux-gnu/
+#COPY --from=build-node /out/bin/concordium-node /concordium-node
+#COPY --from=build-node /out/bin/node-collector /node-collector
