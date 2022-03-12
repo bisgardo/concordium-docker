@@ -3,7 +3,7 @@
 A collection of scripts and configuration files to build and deploy a containerized,
 dynamically linked node for the [Concordium](https://concordium.com) blockchain.
 
-## Quickstart
+## Quick run
 
 Start a Concordium node deployment with node name `<node-name>`
 using Docker Compose with publicly available images:
