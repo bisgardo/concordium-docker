@@ -2,6 +2,7 @@ version: '3.9'
 services:
   node_oob_catchup:
     image: curlimages/curl:latest
+    pull_policy: always
     user: root
     volumes:
     - data:/mnt/data
@@ -56,6 +57,7 @@ services:
     - concordium
   node-dashboard-grpc-proxy:
     image: envoyproxy/envoy:v1.18-latest
+    pull_policy: always
     entrypoint: /usr/local/bin/envoy --config-path /etc/envoy/envoy.yaml
     depends_on:
     - node
