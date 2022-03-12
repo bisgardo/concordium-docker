@@ -46,7 +46,7 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from caching
 the cloned source code at the current commit.
 
-The currently active tag (as of 2022-01-03) is `3.0.1-0`.
+The currently active tag (as of 2022-03-13) is `3.0.1-2`.
 
 *Optional*
 
@@ -167,8 +167,8 @@ A mainnet node setup may for example be run using the Docker Compose script like
 export NODE_NAME=my_node
 export DOMAIN=mainnet.concordium.software
 export GENESIS_DATA_FILE=./genesis/mainnet-0.dat
-export NODE_IMAGE=bisgardo/concordium-node:3.0.1-0_0
-export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:node-3.0.1-0_0
+export NODE_IMAGE=bisgardo/concordium-node:<tag>
+export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:<tag>
 docker-compose pull # prevent 'up' from building instead of pulling
 docker-compose --project-name=mainnet up --no-build
 ```
@@ -180,7 +180,8 @@ and may simplify this into
 NODE_NAME=my_node ./run.sh mainnet
 ```
 
-Working environment files are provided for mainnet and testnet.
+Working environment files that reference the most recently built public images
+are provided for Testnet and Mainnet.
 
 Feel free to use these images for testing and experimentation,
 but never trust random internet strangers' binaries with anything secret or valuable.
