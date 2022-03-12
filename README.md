@@ -3,6 +3,23 @@
 A collection of scripts and configuration files to build and deploy a containerized,
 dynamically linked node for the [Concordium](https://concordium.com) blockchain.
 
+## Quick run
+
+Start a Concordium node deployment with node name `<node-name>`
+using Docker Compose with publicly available images:
+
+*Testnet*
+
+```
+NODE_NAME=<node-name> ./run.sh testnet
+```
+
+*Mainnet*
+
+```
+NODE_NAME=<node-name> ./run.sh mainnet
+```
+
 ## Build
 
 By default, the builds run in images based on Debian Buster (10).
@@ -155,6 +172,15 @@ export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:node-3.0.1-0_0
 docker-compose pull # prevent 'up' from building instead of pulling
 docker-compose --project-name=mainnet up --no-build
 ```
+
+The convenience script `run.sh` loads the parameters from a `<network>.env` file
+and may simplify this into
+
+```shell
+NODE_NAME=my_node ./run.sh mainnet
+```
+
+Working environment files are provided for mainnet and testnet.
 
 Feel free to use these images for testing and experimentation,
 but never trust random internet strangers' binaries with anything secret or valuable.
