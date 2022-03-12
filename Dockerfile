@@ -34,7 +34,7 @@ RUN cmake -G "Unix Makefiles" . && \
     make -j"$(nproc)" && \
     make install
 
-# Build 'concordium-node'.
+# Build 'concordium-node' (and 'node-collector') in temporary image.
 FROM haskell:${ghc_version}-${debian_base_image_tag} AS build
 RUN apt-get update && \
     apt-get install -y liblmdb-dev libpq-dev libssl-dev && \
@@ -58,7 +58,7 @@ COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
 
 # Compile 'concordium-node' (Rust, depends on consensus).
 # Note that feature 'profiling' implies 'static' (i.e. static linking).
-# As the build prodecure assumes dynamic linking, this should not be used.
+# As the build prodecure expects dynamic linking, that feature should not be used.
 ARG extra_features
 RUN cargo build --manifest-path=./concordium-node/Cargo.toml --release --features="collector,${extra_features}"
 
@@ -76,10 +76,14 @@ RUN mkdir -p /target/bin && \
     cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib && \
     cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /target/lib
 
-# Result image.
+# Build result image.
 FROM debian:${debian_base_image_tag}
+# Runtime dependencies:
+# - 'ca-certificates' (SSL certificates for CAs trusted by Mozilla): Needed for Node Collector to push via HTTPS.
+# - 'libpq5' (PostgreSQL driver): Used by Node's transaction logging feature.
+# - 'liblmdb0'(LMDB implementation): Used to persist the Node's state.
 RUN apt-get update && \
-    apt-get install -y ca-certificates unbound libpq-dev liblmdb-dev && \
+    apt-get install -y ca-certificates libpq5 liblmdb0 && \
     rm -rf /var/lib/apt/lists/*
 
 # P2P listen port ('concordium-node').
