@@ -54,7 +54,7 @@ a basic functioning setup on a host running a "recent" version of Ubuntu may be 
 1. Install version `<version>` of server and `psql` client
    (probably only one or two different versions are available in the public repository -
    it's not important which one is used).
-
+   
    ```
    sudo apt update
    sudo apt install postgresql-<version> postgresql-client-<version>
@@ -63,7 +63,7 @@ a basic functioning setup on a host running a "recent" version of Ubuntu may be 
    This also creates the system and DB user `postgres`:
 
 2. Create database with name `<database-name>` and set password `<database-password>` for user `postgres`:
-
+   
    ```
    $ sudo -u postgres psql
    # CREATE DATABASE "<database-name>";
@@ -71,22 +71,22 @@ a basic functioning setup on a host running a "recent" version of Ubuntu may be 
    ```
 
 3. Allow external connections (access from within a Docker container on a non-host network counts as "external").
-
+   
    In `/etc/postgresql/<version>/main/postgresql.conf`, set
-
+   
    ```
    listen_addresses = '*'
    ```
-   
+
 4. Allow password based access to the database via the `postgres` user.
    In `/etc/postgresql/<version>/main/pg_hba.conf`, add the following record:
-
+   
    ```
    host    <database-name>     postgres        all     password
    ```
 
 5. Restart the system service:
-
+   
    ```
    sudo systemctl restart postgresql.service
    ```
