@@ -147,6 +147,19 @@ Running a node without Docker Compose or some other orchestration tool is cumber
 [Look up](https://docs.docker.com/compose/compose-file/compose-file-v3/) the features used in the Compose file
 and [find](https://docs.docker.com/engine/reference/commandline/run/) the corresponding `docker run` args.
 
+The deployment may be stopped using `Ctrl-C` (unless running in detached mode) or `docker-compose stop`.
+In the latter case, make sure to pass all the same project name, environment variables, etc. as were given to `up`.
+In both cases, the default behavior is to send a SIGTERM signal to the running containers with a
+[10 sec deadline](https://docs.docker.com/compose/faq/#why-do-my-services-take-10-seconds-to-recreate-or-stop)
+for the containers to stop.
+Once the deadline has passed, the containers are killed with SIGKILL.
+In rare cases, the node may need more than a few seconds to terminate gracefully.
+It's therefore good practice to increase this deadline using e.g.
+
+```
+docker-compose stop --timeout=60
+```
+
 ## Usage
 
 Run the following command to get a list of supported arguments:
