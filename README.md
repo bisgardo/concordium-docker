@@ -71,6 +71,7 @@ but the node now allows its location to be configurable,
 allowing it to be passed as a simple bind mount.
 
 To this end, the following genesis files are located in directory [`genesis`](./genesis):
+
 - `mainnet-0.dat`: Initial genesis data for the mainnet ([source](https://distribution.mainnet.concordium.software/data/genesis.dat)).
 - `testnet-0.dat`: Initial genesis data for the current testnet ([source](https://distribution.testnet.concordium.com/data/genesis.dat)).
 
@@ -167,6 +168,10 @@ Run the following command to get a list of supported arguments:
 ```shell
 docker run --rm concordium-node:<tag> /concordium-node --help | less
 ```
+
+## Transaction logging
+
+Transaction logging is [documented separately](./transaction-logging.md).
 
 ## CI: Public images
 
