@@ -7,18 +7,18 @@ This feature is disabled by default and may be enabled in the Docker Compose set
 
 Database credentials etc. are configured with the following variables:
 
-- `TXLOG_DB_NAME` (default: `concordium_txlog`): Name of the database in the PostgreSQL instance created for the purpose.
-- `TXLOG_DB_HOST` (default: `172.17.0.1`): DNS or IP address of the host.
+- `TXLOG_PGDATABASE` (default: `concordium_txlog`): Name of the database in the PostgreSQL instance created for the purpose.
+- `TXLOG_PGHOST` (default: `172.17.0.1`): DNS or IP address of the host.
   The default value assumes that the PostgreSQL instance is running natively, i.e. outside of Docker.
-- `TXLOG_DB_PORT` (default: `5432`): Port of the PostgreSQL instance.
-- `TXLOG_DB_USERNAME` (default: `postgres`): Username of the PostgreSQL user used to log the transactions.
-- `TXLOG_DB_PASSWORD`: Password of the PostgreSQL user.
+- `TXLOG_PGPORT` (default: `5432`): Port of the PostgreSQL instance.
+- `TXLOG_PGUSER` (default: `postgres`): Username of the PostgreSQL user used to log the transactions.
+- `TXLOG_PGPASSWORD`: Password of the PostgreSQL user.
 
 The variables may be passed to `docker-compose` or persisted in a `.env` file. For example, run
 
 ```
 export TXLOG_ENABLED=1
-export TXLOG_DB_PASSWORD=<database-password>
+export TXLOG_PGPASSWORD=<database-password>
 ```
 
 before running the commands from the main documentation.
