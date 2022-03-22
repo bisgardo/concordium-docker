@@ -154,12 +154,21 @@ In both cases, the default behavior is to send a SIGTERM signal to the running c
 [10 sec deadline](https://docs.docker.com/compose/faq/#why-do-my-services-take-10-seconds-to-recreate-or-stop)
 for the containers to stop.
 Once the deadline has passed, the containers are killed with SIGKILL.
-In rare cases, the node may need more than a few seconds to terminate gracefully.
+In certain cases (like on startup), the node may need more than a few seconds to terminate gracefully.
 It's therefore good practice to increase this deadline using e.g.
 
 ```
-docker-compose stop --timeout=60
+docker-compose stop --timeout=120
 ```
+
+An even safer option is to only send it a SIGTERM signal:
+
+```
+docker kill --signal=SIGTERM <container>
+```
+
+Stopping the node during the initial out-of-band catchup is not recommended
+as it might lead to internal data corruption.
 
 ## Usage
 
