@@ -3,7 +3,8 @@
 The Concordium Node includes the ability to
 [log transactions to an external PostgreSQL database](https://github.com/Concordium/concordium-node/blob/main/docs/transaction-logging.md).
 
-This feature is disabled by default and may be enabled in the Docker Compose setup by setting `TXLOG_ENABLED=1`.
+This feature is disabled by default and may be enabled in the Docker Compose setup by defining the environment variable
+`CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING` with any value.
 
 Database credentials etc. are configured with the following variables:
 
@@ -17,11 +18,13 @@ Database credentials etc. are configured with the following variables:
 The variables may be passed to `docker-compose` or persisted in a `.env` file. For example, run
 
 ```
-export TXLOG_ENABLED=1
+export CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING=
 export TXLOG_PGPASSWORD=<database-password>
 ```
 
 before running the commands from the main documentation.
+
+The reason behind the inconsistently named environment variables is explained in a comment in `docker-compose.yaml`.
 
 ## Disclaimer
 

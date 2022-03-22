@@ -24,7 +24,14 @@ services:
     - CONCORDIUM_NODE_RPC_SERVER_ADDR=0.0.0.0
     - CONCORDIUM_NODE_PROMETHEUS_SERVER=1
     - CONCORDIUM_NODE_PROMETHEUS_LISTEN_ADDRESSS=0.0.0.0
-    - CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING=${TXLOG_ENABLED-}
+    # We currently cannot define a shorthand variable for 'CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING' specifically,
+    # because the application enables tx logging if it's defined with *any* value (including empty).
+    # The only way that Docker Compose supports defining the variable on some cases and not others
+    # is to pass it directly like this.
+    # The node parses the variable through the library 'clap' which improved this behavior in v3.0.0
+    # (in 'https://github.com/clap-rs/clap/pull/2664' to be precise),
+    # but the node has not yet upgraded past that version.
+    - CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING
     - CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING_NAME=${TXLOG_PGDATABASE-concordium_txlog}
     - CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING_HOST=${TXLOG_PGHOST-172.17.0.1}
     - CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING_PORT=${TXLOG_PGPORT-5432}
