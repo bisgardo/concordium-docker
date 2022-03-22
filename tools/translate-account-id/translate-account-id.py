@@ -3,6 +3,8 @@
 # Script for translating account IDs between the common address representation (base58-check)
 # and the hex representation used in (at least) the PostgreSQL database for transaction logging.
 
+# Depends on package 'base58': Install using 'pip install base58'.
+
 import base58, sys
 
 # Start by assuming that the input is a base58-check encoded account and fall back to hex if decoding fails.

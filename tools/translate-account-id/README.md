@@ -11,7 +11,7 @@ The script attempts to parse a given ID in either representation
 *Build:*
 
 ```
-docker build -t concordium-translate-account-id .
+docker build -t concordium-translate-account-id --pull .
 ```
 
 *Run:*
