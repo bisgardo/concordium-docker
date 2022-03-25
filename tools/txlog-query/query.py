@@ -23,15 +23,16 @@ def query_all_accounts(connection):
 def query_by_address_bytes(connection, address_bytes):
     with connection.cursor() as cursor:
         sql = '''
-                SELECT
-                    ati.account,         -- returns bytes; wrap in "encode(..., 'hex')" to convert to string
-                    summaries.block,     -- returns bytes; wrap in "encode(..., 'hex')" to convert to string
-                    summaries.timestamp,
-                    summaries.height,
-                    summaries.summary
-                FROM ati LEFT JOIN summaries ON ati.summary = summaries.id
-                WHERE ati.account = %s   -- accepts bytes; wrap in "decode(..., 'hex')" to convert from string
-                ORDER BY ati.id
-            '''
+            SELECT
+                ati.account,                     -- returns bytes; wrap in "encode(..., 'hex')" to convert to string
+                summaries.block,                 -- returns bytes; wrap in "encode(..., 'hex')" to convert to string
+                summaries.timestamp,
+                summaries.height,
+                CAST(summaries.summary AS text)  -- convert jsonb to string as it would otherwise be redundantly
+                                                 -- parsed as a dict
+            FROM ati LEFT JOIN summaries ON ati.summary = summaries.id
+            WHERE ati.account = %s               -- accepts bytes; wrap in "decode(..., 'hex')" to convert from string
+            ORDER BY ati.id
+        '''
         cursor.execute(sql, (address_bytes,))
         return cursor.fetchall()

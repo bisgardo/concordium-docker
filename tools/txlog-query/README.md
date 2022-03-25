@@ -2,7 +2,7 @@
 
 Simple Python tool for querying the PostgreSQL database used for transaction logging.
 It accepts the connection values for the database and an account address in base58-check format.
-The necessary format conversions are performed internally and the complete list of summaries for the account is printed out.
+The necessary format conversions are performed internally and the complete list of summaries for the account is printed out as JSON.
 
 While the tool may be somewhat useful on its own, its real purpose is to serve as a starting place for more complex applications.
 

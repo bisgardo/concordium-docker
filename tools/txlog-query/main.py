@@ -21,7 +21,7 @@ if __name__ == '__main__':
     )
 
     rows = query_by_address_bytes(connection, bytes_from_base58check(account_address))
-    for (address, block, timestamp, height, summary) in rows:
+    for (address_bytes, block_bytes, timestamp, height, summary_json) in rows:
         # Round-trip sanity check.
-        assert (base58check_from_bytes(address) == account_address)
-        print(summary)
+        assert (base58check_from_bytes(address_bytes) == account_address)
+        print(summary_json)
