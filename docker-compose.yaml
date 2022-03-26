@@ -69,8 +69,8 @@ services:
     - node
     networks:
     - concordium
-    restart: on-failure  # service may time out before the node is operational
-    stop_signal: SIGKILL # application doesn't react to SIGINT nor SIGTERM
+    restart: unless-stopped  # service may time out before the node is operational (shouldn't use 'on-failure' becuase that will cause the container to start on boot)
+    stop_signal: SIGKILL     # application doesn't react to SIGINT nor SIGTERM
   node-dashboard-grpc-proxy:
     image: envoyproxy/envoy:v1.18-latest
     pull_policy: always
