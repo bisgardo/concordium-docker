@@ -1,7 +1,7 @@
 # `txlog-query`
 
 Simple Python tool for querying the PostgreSQL database used for transaction logging.
-It accepts the connection values for the database and an account address in base58-check format.
+It accepts the connection values for the database and an account address in Base58Check format.
 The necessary format conversions are performed internally and the complete list of summaries for the account is printed out as JSON.
 
 While the tool may be somewhat useful on its own, its real purpose is to serve as a starting place for more complex applications.
@@ -27,4 +27,4 @@ where
 - `<db-name>` is the database on the PostgreSQL instance (default: `concordium_txlog`).
 - `<db-user>` is the PostgreSQL user used to query the database (default: `postgres`).
 - `<db-password>` is the password for `<db-user>`.
-- `<address>` is an account address represented in base58-check format.
+- `<address>` is an account address represented in Base58Check format.
