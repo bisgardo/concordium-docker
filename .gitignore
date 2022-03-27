@@ -2,4 +2,5 @@
 !.*ignore
 !.*lint
 !.github
+!.pre-commit-config.yaml
 env/

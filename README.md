@@ -103,7 +103,7 @@ See [`docker-compose.yaml`](./docker-compose.yaml) for a working run configurati
 ## Build and/or run using Docker Compose
 
 The setup relies on features that are only available in relatively recent versions of Docker Compose.
-The `requrements.txt` file specifies a compatible version (the latest v1 release at the time of this writing)
+The `requirements.txt` file specifies a compatible version (the latest v1 release at the time of this writing)
 which may be installed (preferably in a [virtualenv](https://docs.python.org/3/library/venv.html))
 using `pip install -r requirements.txt`.
 
@@ -223,3 +223,19 @@ use your own copy/fork or just take the files that you need.
 By using any files from this repository,
 you accept full responsibility of their effect and availability now and in the future,
 so review carefully and only apply changes explicitly.
+
+## Development
+
+### Git pre-commit hook
+
+To avoid committing incorrectly formatted YAML (and have it rejected by the CI), a git pre-commit hook can verify it before committing:
+
+The hook is implemented using the [`pre-commit`](https://pre-commit.com/) tool which may be installed using `pip`:
+
+```
+pip install pre-commit
+```
+
+The `requirements.txt` file specifies a compatible version.
+
+Then just run `pre-commit install` from the project root to install the hook that's defined in `.pre-commit-config.yaml`.
