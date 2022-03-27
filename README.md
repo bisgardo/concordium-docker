@@ -223,3 +223,19 @@ use your own copy/fork or just take the files that you need.
 By using any files from this repository,
 you accept full responsibility of their effect and availability now and in the future,
 so review carefully and only apply changes explicitly.
+
+## Development
+
+### Git pre-commit hook
+
+To avoid committing incorrectly formatted YAML (and have it rejected by the CI), a git pre-commit hook can verify it before committing:
+
+The hook is implemented using the [`pre-commit`](https://pre-commit.com/) tool which may be installed using `pip`:
+
+```
+pip install pre-commit
+```
+
+The `requrements.txt` file specifies a compatible version.
+
+Then just run `pre-commit install` from the project root to install the hook that's defined in `.pre-commit-config.yaml`.
