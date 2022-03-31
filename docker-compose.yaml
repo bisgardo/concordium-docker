@@ -37,6 +37,7 @@ services:
     - CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING_PORT=${TXLOG_PGPORT-5432}
     - CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING_USERNAME=${TXLOG_PGUSER-postgres}
     - CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING_PASSWORD=${TXLOG_PGPASSWORD-}
+    - CONCORDIUM_NODE_LOG_LEVEL_DEBUG
     # Defer container start until the init containers have completed successfully.
     # Note that no logs are emitted on stdout until all containers have started.
     # Also, this syntax requires Docker Compose v. 1.29+.

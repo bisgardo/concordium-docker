@@ -133,7 +133,9 @@ The publicly available official options are:
 - `mainnet.concordium.software`
 - `testnet.concordium.com`
 
-Setting the flag `--project-name=<name>` to `docker-compose up` prepends the provided name to containers and other persistent resources,
+Defining the variable `CONCORDIUM_NODE_LOG_LEVEL_DEBUG` (with any value) enables debug logging for the node.
+
+Adding `--project-name=<name>` to `docker-compose up` prepends `<name>` to the names of containers and other persistent resources,
 making it possible to switch between networks without having to delete data and existing containers.
 Note that because ports are fixed, running multiple nodes at the same time is not supported with the current setup.
 
