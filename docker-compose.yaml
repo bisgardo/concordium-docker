@@ -74,7 +74,7 @@ services:
                              # (shouldn't use 'on-failure' as that will make the container auto start on boot)
     stop_signal: SIGKILL     # application doesn't react to SIGINT nor SIGTERM
   node-dashboard-grpc-proxy:
-    profiles: [ node-dashboard ]
+    profiles: [node-dashboard]
     image: envoyproxy/envoy:v1.18-latest
     pull_policy: always
     entrypoint: /usr/local/bin/envoy --config-path /etc/envoy/envoy.yaml
@@ -88,7 +88,7 @@ services:
     volumes:
     - ./node-dashboard/envoy.yaml:/etc/envoy/envoy.yaml:ro
   node-dashboard:
-    profiles: [ node-dashboard ]
+    profiles: [node-dashboard]
     image: ${NODE_DASHBOARD_IMAGE}
     depends_on:
     - node-dashboard-grpc-proxy
