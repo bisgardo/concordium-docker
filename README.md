@@ -98,7 +98,7 @@ docker build -t concordium-node-dashboard:<tag> --build-arg tag=main ./node-dash
 
 Run:
 
-See [`docker-compose.yaml`](./docker-compose.yaml) for a working run configuration.
+See [`docker-compose.yaml`](./docker-compose.yaml) for a working run configuration (set profile `node-dashboard` to enable).
 
 ## Build and/or run using Docker Compose
 
@@ -118,6 +118,7 @@ DOMAIN=mainnet.concordium.software \
 GENESIS_DATA_FILE=./genesis/mainnet-0.dat \
 NODE_IMAGE=concordium-node:<tag> \
 NODE_DASHBOARD_IMAGE=concordium-node-dashboard:node-<tag> \
+COMPOSE_PROFILES=node-dashboard \
 docker-compose --project-name=mainnet up
 ```
 
@@ -138,6 +139,9 @@ Defining the variable `CONCORDIUM_NODE_LOG_LEVEL_DEBUG` (with any value) enables
 Adding `--project-name=<name>` to `docker-compose up` prepends `<name>` to the names of containers and other persistent resources,
 making it possible to switch between networks without having to delete data and existing containers.
 Note that because ports are fixed, running multiple nodes at the same time is not supported with the current setup.
+
+Adding `--profile=node-dashboard` (or `COMPOSE_PROFILES=node-dashboard`) enables a Node Dashboard
+and an accompanying Envoy gRPC proxy instance to be started up as part of the deployment.
 
 The command will automatically build the images from scratch if they don't already exist.
 Set the flag `--no-build` to prevent that.
@@ -199,7 +203,7 @@ export GENESIS_DATA_FILE=./genesis/mainnet-0.dat
 export NODE_IMAGE=bisgardo/concordium-node:<tag>
 export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:<tag>
 docker-compose pull # prevent 'up' from building instead of pulling
-docker-compose --project-name=mainnet up --no-build
+docker-compose --project-name=mainnet up --profile=node-dashboard --no-build
 ```
 
 The convenience script `run.sh` loads the parameters from a `<network>.env` file
