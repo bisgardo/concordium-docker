@@ -4,13 +4,22 @@ services:
     image: curlimages/curl:latest
     pull_policy: always
     user: root
+    environment:
+    - OOB_CATCHUP_REFRESH_AGE_SECS=${OOB_CATCHUP_REFRESH_AGE_SECS-1209600} # default: 14d
     volumes:
     - data:/mnt/data
     entrypoint:
     - /bin/sh
-    - -c
+    - -xc
     - |
-      [ -f /mnt/data/blocks.mdb ] ||
+      # Compute number of seconds since last modification of '/mnt/data/lock.mdb'.
+      # If the file doesn't exist, the "age" defaults to the current Unix time.
+      last_ts="$$(stat -c %Y /mnt/data/lock.mdb 2>/dev/null || echo 0)"
+      now_ts="$$(date +%s)"
+      age_secs="$$((now_ts - last_ts))"
+
+      # Fetch blocks unless age is less than configured limit.
+      [ "$${age_secs}" -lt "$${OOB_CATCHUP_REFRESH_AGE_SECS}" ] ||
         curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /mnt/data/blocks.mdb
   node:
     image: ${NODE_IMAGE}
