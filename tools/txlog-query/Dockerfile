@@ -11,5 +11,4 @@ COPY ./requirements.txt .
 RUN pip install --user --no-cache-dir -r requirements.txt
 # Copy application files.
 COPY . .
-#ENV PYTHONPATH=/app
 ENTRYPOINT ["./main.py"]
