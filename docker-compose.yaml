@@ -5,7 +5,7 @@ services:
     pull_policy: always
     user: root
     environment:
-    - OOB_CATCHUP_REFRESH_AGE_SECS=${OOB_CATCHUP_REFRESH_AGE_SECS-1209600} # default: 14d
+    - OOB_CATCHUP_REFRESH_AGE_SECS
     volumes:
     - data:/mnt/data
     entrypoint:
@@ -18,8 +18,8 @@ services:
       now_ts="$$(date +%s)"
       age_secs="$$((now_ts - last_ts))"
 
-      # Fetch blocks unless age is less than configured limit.
-      [ "$${age_secs}" -lt "$${OOB_CATCHUP_REFRESH_AGE_SECS}" ] ||
+      # Fetch blocks unless age is less than configured limit which defaults to "now" (i.e. never).
+      [ "$${age_secs}" -lt "$${OOB_CATCHUP_REFRESH_AGE_SECS-$${now_ts}}" ] ||
         curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /mnt/data/blocks.mdb
   node:
     image: ${NODE_IMAGE}
