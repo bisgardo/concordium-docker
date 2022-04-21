@@ -31,4 +31,5 @@ jobs:
         export NODE_TAG="${{ env.node_tag }}"
         export NODE_IMAGE="${{ env.node_image_repo }}:${{ env.node_image_tag }}"
         export NODE_DASHBOARD_IMAGE=${{ env.node_dashboard_image_repo }}:${{ env.node_dashboard_image_tag }}
+        export COMPOSE_PROFILES=node-dashboard
         NODE_NAME= docker-compose build && docker-compose push
