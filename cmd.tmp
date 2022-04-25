@@ -1,0 +1,1 @@
+docker run --rm -e TRANSACTION_LOGGER_NODES=http://172.17.0.1:10000 -e TRANSACTION_LOGGER_DB_STRING="host=172.17.0.1 dbname=$ENV_concordium_txlog_service user=postgres password=$PGPASSWORD port=5432" -e TRANSACTION_LOGGER_LOG_LEVEL=debug concordium/transaction-logger:0.2.1-0
