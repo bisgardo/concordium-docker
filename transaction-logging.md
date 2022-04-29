@@ -87,6 +87,8 @@ a basic functioning setup on a host running a "recent" version of Ubuntu may be 
    ```
    host    <database-name>     postgres        all     password
    ```
+   
+   Use `<database-name>` `all` to allow access to all DBs.
 
 5. Restart the system service:
    

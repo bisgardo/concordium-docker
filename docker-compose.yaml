@@ -109,6 +109,17 @@ services:
       context: ./node-dashboard
       args:
         tag: main
+  transaction-logger:
+    profiles: [transaction-logger]
+    image: ${TRANSACTION_LOGGER_IMAGE}
+    environment:
+    - TRANSACTION_LOGGER_NODES=http://node:10000
+    - TRANSACTION_LOGGER_DB_STRING
+    - TRANSACTION_LOGGER_LOG_LEVEL=debug
+    depends_on:
+    - node
+    networks:
+    - concordium
 volumes:
   data:
   config:
