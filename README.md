@@ -10,13 +10,13 @@ using Docker Compose with publicly available images:
 
 *Testnet*
 
-```
+```shell
 NODE_NAME=<node-name> ./run.sh testnet
 ```
 
 *Mainnet*
 
-```
+```shell
 NODE_NAME=<node-name> ./run.sh mainnet
 ```
 
@@ -159,13 +159,13 @@ Once the deadline has passed, the containers are killed with SIGKILL.
 In certain cases (like on startup), the node may need more than a few seconds to terminate gracefully.
 It's therefore good practice to increase this deadline using e.g.
 
-```
+```shell
 docker-compose stop --timeout=120
 ```
 
 An even safer option is to only send it a SIGTERM signal:
 
-```
+```shell
 docker kill --signal=SIGTERM <container>
 ```
 
@@ -174,24 +174,21 @@ as it might lead to internal data corruption.
 
 ### Backing up persisted data
 
-Data in a persisted volume may be backed up by mounting it into a container and backing it up from there.
-For instance, one may archive it using `tar` into bind mount.
-For example, the following command archives the contents of the volume named `data` into a file `./backup/data.tar.gz`:
+Data in a persisted volume may be mounted into a throwaway container and backed up from there,
+for instance by archiving it into a bind mount.
 
-```
-docker run --rm -v data:/data -v "$PWD"/backup:/backup --pull=always busybox:stable tar -C / -zcf ./backup/data.tar.gz ./data
-```
+As an example, the following command archives the contents of a volume named `data`
+into a file `./backup/data.tar.gz` located in such a mount:
 
-Restoring the backup is just a matter of extracting instead of creating:
-
-```
-docker run --rm -v data:/data -v "$PWD"/backup:/backup --pull=always busybox:stable tar -C / -zxf ./backup/data.tar.gz
+```shell
+docker run --rm --volume=data:/data --volume="$PWD"/backup:/backup --workdir=/ busybox:stable tar -zcf ./backup/data.tar.gz ./data
 ```
 
-If necessary, wipe the volume first:
+Restoring the backup into a fresh (or properly wiped) volume is then just a matter of extracting
+instead of creating:
 
-```
-docker run --rm -v data:/data --pull=always busybox:stable rm -rf '/data/*'
+```shell
+docker run --rm --volume=data:/data --volume="$PWD"/backup:/backup --workdir=/ busybox:stable tar -zxf ./backup/data.tar.gz
 ```
 
 ## Usage
@@ -256,7 +253,7 @@ To avoid committing incorrectly formatted YAML (and have it rejected by the CI),
 
 The hook is implemented using the [`pre-commit`](https://pre-commit.com/) tool which may be installed using `pip`:
 
-```
+```shell
 pip install pre-commit
 ```
 
