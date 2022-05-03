@@ -114,7 +114,12 @@ services:
     image: ${TRANSACTION_LOGGER_IMAGE}
     environment:
     - TRANSACTION_LOGGER_NODES=http://node:10000
-    - TRANSACTION_LOGGER_DB_STRING
+    - TRANSACTION_LOGGER_DB_STRING=
+        host=${TRANSACTION_LOGGER_PGDATABASE-172.17.0.1}
+        port=${TRANSACTION_LOGGER_PGPORT-5432}
+        dbname=${TRANSACTION_LOGGER_PGDATABASE-concordium_txlog_service}
+        user=${TRANSACTION_LOGGER_PGUSER-postgres}
+        password=${TRANSACTION_LOGGER_PGPASSWORD-}
     - TRANSACTION_LOGGER_LOG_LEVEL=debug
     depends_on:
     - node
