@@ -4,3 +4,4 @@
 !.github
 !.pre-commit-config.yaml
 env/
+backup/

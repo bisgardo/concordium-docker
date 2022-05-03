@@ -172,6 +172,28 @@ docker kill --signal=SIGTERM <container>
 Stopping the node during the initial out-of-band catchup is not recommended
 as it might lead to internal data corruption.
 
+### Backing up persisted data
+
+Data in a persisted volume may be backed up by mounting it into a container and backing it up from there.
+For instance, one may archive it using `tar` into bind mount.
+For example, the following command archives the contents of the volume named `data` into a `./backup/data.tar.gz`:
+
+```
+docker run --rm -v testnet_data:/data -v "$PWD"/backup:/backup alpine tar -C / -zcf ./backup/data.tar.gz ./data
+```
+
+To restore the backup, do:
+
+```
+docker run --rm -v testnet_data:/data -v "$PWD"/backup:/backup alpine tar -C / -zxf ./backup/data.tar.gz
+```
+
+If necessary, wipe the volume first:
+
+```
+docker run --rm -v "$PWD"/backup:/backup alpine rm -rf /data
+```
+
 ## Usage
 
 Run the following command to get a list of supported arguments:
