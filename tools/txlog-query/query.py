@@ -20,8 +20,8 @@ def query(connection, sql, args):
 def query_by_address_bytes(connection, address_bytes):
     sql = '''
         SELECT
-            ati.account,                     -- returns bytes; wrap in "encode(..., 'hex')" to convert to string
-            summaries.block,                 -- returns bytes; wrap in "encode(..., 'hex')" to convert to string
+            ati.account,                     -- returns bytes (memoryview); wrap in "encode(..., 'hex')" to convert to string
+            summaries.block,                 -- returns bytes (memoryview); wrap in "encode(..., 'hex')" to convert to string
             summaries.timestamp,
             summaries.height,
             CAST(summaries.summary AS text)  -- convert JSON to string as it would otherwise be parsed as a dict

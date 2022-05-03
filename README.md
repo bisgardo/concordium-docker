@@ -75,11 +75,7 @@ To this end, the following genesis files are located in directory [`genesis`](./
 - `mainnet-0.dat`: Initial genesis data for the mainnet ([source](https://distribution.mainnet.concordium.software/data/genesis.dat)).
 - `testnet-0.dat`: Initial genesis data for the current testnet ([source](https://distribution.testnet.concordium.com/data/genesis.dat)).
 
-The directory also holds the now-unused dockerfile for the genesis image. See commit 17dde7d for the old instructions.
-
-Note that the genesis file was renamed in commit cf9f7fe.
-The corresponding [image](https://hub.docker.com/layers/164803185/bisgardo/concordium-node-genesis/mainnet-1/images/sha256-d4846eceaa6a6b75c1cdfb3d8222aa27be2a9f51acadcb82682ec4efd24dd886?context=repo)
-with the old name is deprecated and will be removed.
+The directory also holds the now-unused dockerfile for the genesis image. See commit `17dde7d` for the old instructions.
 
 ### `node-dashboard`
 

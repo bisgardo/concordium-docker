@@ -11,13 +11,13 @@ While the tool may be somewhat useful on its own, its real purpose is to serve a
 *Build:*
 
 ```
-docker build -t concordium-txlog --pull .
+docker build -t txlog-query --pull .
 ```
 
 *Run:*
 
 ```
-docker run -e PGHOST=<db-host> -e PGPORT=<db-port> -e PGDATABASE=<db-name> -e PGUSER=<db-user> -e PGPASSWORD=<db-password> concordium-txlog <address>
+docker run -e PGHOST=<db-host> -e PGPORT=<db-port> -e PGDATABASE=<db-name> -e PGUSER=<db-user> -e PGPASSWORD=<db-password> txlog-query <address>
 ```
 
 where
@@ -27,4 +27,4 @@ where
 - `<db-name>` is the database on the PostgreSQL instance (default: `concordium_txlog`).
 - `<db-user>` is the PostgreSQL user used to query the database (default: `postgres`).
 - `<db-password>` is the password for `<db-user>`.
-- `<address>` is an account address represented in Base58Check format.
+- `<address>` is an account address represented in either Base58Check format or hex (ignoring any prefix ending with `x`).
