@@ -179,19 +179,19 @@ For instance, one may archive it using `tar` into bind mount.
 For example, the following command archives the contents of the volume named `data` into a file `./backup/data.tar.gz`:
 
 ```
-docker run --rm -v testnet_data:/data -v "$PWD"/backup:/backup --pull=always busybox:stable tar -C / -zcf ./backup/data.tar.gz ./data
+docker run --rm -v data:/data -v "$PWD"/backup:/backup --pull=always busybox:stable tar -C / -zcf ./backup/data.tar.gz ./data
 ```
 
-To restore the backup, do:
+Restoring the backup is just a matter of extracting instead of creating:
 
 ```
-docker run --rm -v testnet_data:/data -v "$PWD"/backup:/backup --pull=always busybox:stable tar -C / -zxf ./backup/data.tar.gz
+docker run --rm -v data:/data -v "$PWD"/backup:/backup --pull=always busybox:stable tar -C / -zxf ./backup/data.tar.gz
 ```
 
 If necessary, wipe the volume first:
 
 ```
-docker run --rm -v "$PWD"/backup:/backup busybox:stable rm -rf /data
+docker run --rm -v data:/data --pull=always busybox:stable rm -rf '/data/*'
 ```
 
 ## Usage
