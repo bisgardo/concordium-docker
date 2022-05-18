@@ -9,7 +9,7 @@ data:
   get-consensus-status.sh: |
     #!/bin/sh
     set -eux
-    wget -O ./concordium-client https://distribution.concordium.software/tools/linux/concordium-client_1.0.1
+    wget -O ./concordium-client https://distribution.concordium.software/tools/linux/concordium-client_3.0.4-0
     chmod +x ./concordium-client
     # Ping a random replica.
     ./concordium-client --grpc-ip concordium-node.default.svc.cluster.local --grpc-port 10000 consensus status
