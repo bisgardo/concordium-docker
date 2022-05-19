@@ -1,7 +1,9 @@
-# Transaction logging
+# Transaction logging (legacy)
 
 The Concordium Node includes the ability to
 [log transactions to an external PostgreSQL database](https://github.com/Concordium/concordium-node/blob/main/docs/transaction-logging.md).
+As explained in the disclaimer below,
+this method of logging transactions is in the process of being replaced by a separate service.
 
 This feature is disabled by default and may be enabled in the Docker Compose setup by defining the environment variable
 `CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING` with any value.

@@ -182,7 +182,15 @@ docker run --rm concordium-node:<tag> /concordium-node --help | less
 
 ## Transaction logging
 
-Transaction logging is [documented separately](./transaction-logging.md).
+The Concordium Node includes the ability to
+[log transactions to an external PostgreSQL database](https://github.com/Concordium/concordium-node/blob/main/docs/transaction-logging.md).
+There are two methods of doing this:
+
+- By the node itself: This method is considered legacy and is [documented separately](./legacy-transaction-logging.md).
+- By an [independent service](https://github.com/Concordium/concordium-transaction-logger):
+  The service is deployed separately, handles errors gracefully, and may run against multiple nodes without any particular configuration.
+  This service is intended to replace the legacy method.
+  The Docker Compose file includes this component under the profile `transaction-logger`.
 
 ## CI: Public images
 
@@ -209,7 +217,7 @@ and may simplify this into
 NODE_NAME=my_node ./run.sh mainnet[-txlog]
 ```
 
-where the `txlog` part enables (duplicate) [transaction logging](./transaction-logging.md).
+where the `txlog` part enables (duplicate) [transaction logging](./legacy-transaction-logging.md).
 
 Working environment files that reference the most recently built public images
 are provided for Testnet and Mainnet.
