@@ -15,7 +15,9 @@ Database credentials etc. are configured with the following variables:
 - `TXLOG_PGUSER` (default: `postgres`): Username of the PostgreSQL user used to log the transactions.
 - `TXLOG_PGPASSWORD`: Password of the PostgreSQL user.
 
-The variables may be passed to `docker-compose` or persisted in a `.env` file. For example, run
+The variables may be passed to `docker-compose` or persisted in a `.env` file
+(see [`testnet-txlog.env`](./testnet-txlog.env) and [`mainnet-txlog.env`](./mainnet-txlog.env)).
+For example, run
 
 ```
 export CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING=
@@ -58,7 +60,7 @@ a basic functioning setup on a host running a "recent" version of Ubuntu may be 
    (probably only one or two different versions are available in the public repository -
    it's not important which one is used).
    
-   ```
+   ```shell
    sudo apt update
    sudo apt install postgresql-<version> postgresql-client-<version>
    ```
@@ -67,7 +69,7 @@ a basic functioning setup on a host running a "recent" version of Ubuntu may be 
 
 2. Create database with name `<database-name>` and set password `<database-password>` for user `postgres`:
    
-   ```
+   ```shell
    $ sudo -u postgres psql
    # CREATE DATABASE "<database-name>";
    # ALTER USER postgres WITH PASSWORD '<database-password>';
@@ -92,6 +94,24 @@ a basic functioning setup on a host running a "recent" version of Ubuntu may be 
 
 5. Restart the system service:
    
-   ```
+   ```shell
    sudo systemctl restart postgresql.service
+   ```
+
+### Installing in Kubernetes
+
+Bitnami's Helm chart provides a very easy way of spinning up a PostgreSQL instance in Kubernetes:
+
+1. Add the repo and install the chart:
+
+   ```shell
+   helm repo add bitnami https://charts.bitnami.com/bitnami
+   helm install postgres-txlog --set postgresqlUsername=postgres,postgresqlPassword=<database-password>,postgresqlDatabase=<database-name> bitnami/postgresql
+   ```
+
+2. Forward port 5432 in order to connect to the DB with psql from outside the cluster:
+
+   ```shell
+   kubectl port-forward --namespace default svc/postgres-txlog-postgresql 5432:5432
+   PGPASSWORD="<database-password>" psql --host 127.0.0.1 -U postgres -d <database-name> -p 5432
    ```

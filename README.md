@@ -206,8 +206,10 @@ The convenience script `run.sh` loads the parameters from a `<network>.env` file
 and may simplify this into
 
 ```shell
-NODE_NAME=my_node ./run.sh mainnet
+NODE_NAME=my_node ./run.sh mainnet[-txlog]
 ```
+
+where the `txlog` part enables (duplicate) [transaction logging](./transaction-logging.md).
 
 Working environment files that reference the most recently built public images
 are provided for Testnet and Mainnet.
