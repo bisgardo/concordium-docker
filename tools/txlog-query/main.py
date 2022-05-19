@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from translate_address import *
+from representations import *
 from query import *
 import sys, os
 
@@ -20,6 +20,9 @@ if __name__ == '__main__':
     user = os.getenv('PGUSER', 'postgres')
     password = os.getenv('PGPASSWORD')
     account_address_bytes = address_to_bytes(sys.argv[1])
+
+    print("Address (Base58Check):", base58check_from_bytes(account_address_bytes))
+    print("Address (Hex)        :", account_address_bytes.hex())
 
     connection = connect(
         host=host,
