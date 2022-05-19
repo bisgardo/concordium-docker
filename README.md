@@ -214,10 +214,16 @@ The convenience script `run.sh` loads the parameters from a `<network>.env` file
 and may simplify this into
 
 ```shell
-NODE_NAME=my_node ./run.sh mainnet[-txlog]
+NODE_NAME=my_node ./run.sh <network>
 ```
 
-where the `txlog` part enables (duplicate) [transaction logging](./legacy-transaction-logging.md).
+For running with (duplicate) [transaction logging](./legacy-transaction-logging.md) enabled, use the `txlog` variant, e.g.:
+
+```shell
+export TRANSACTION_LOGGER_PGPASSWORD=<database-password>
+export TXLOG_PGPASSWORD=<database-password>
+NODE_NAME=my_node ./run.sh <network>-txlog
+```
 
 Working environment files that reference the most recently built public images
 are provided for Testnet and Mainnet.
