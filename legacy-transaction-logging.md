@@ -108,7 +108,7 @@ Bitnami's Helm chart provides a very easy way of spinning up a PostgreSQL instan
 
    ```shell
    helm repo add bitnami https://charts.bitnami.com/bitnami
-   helm install postgres-txlog --set postgresqlUsername=postgres,postgresqlPassword=<database-password>,postgresqlDatabase=<database-name> bitnami/postgresql
+   helm install postgres-txlog --set-string="auth.database=<database-name>,auth.postgresPassword=<database-password>" bitnami/postgresql
    ```
 
 2. Forward port 5432 in order to connect to the DB with psql from outside the cluster:
@@ -117,3 +117,14 @@ Bitnami's Helm chart provides a very easy way of spinning up a PostgreSQL instan
    kubectl port-forward --namespace default svc/postgres-txlog-postgresql 5432:5432
    PGPASSWORD="<database-password>" psql --host 127.0.0.1 -U postgres -d <database-name> -p 5432
    ```
+
+Uninstall using
+
+```shell
+helm uninstall postgres-txlog
+```
+
+Uninstalling the release doesn't wipe the persisted data of the database:
+The persistent volume and accompanying claim has to be deleted manually.
+Not doing this may cause following deployments to reuse the old password,
+even if a different one is provided to `helm install`.
