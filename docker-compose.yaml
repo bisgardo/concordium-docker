@@ -127,7 +127,7 @@ services:
     - concordium
   rosetta:
     profiles: [rosetta]
-    image: ${ROSETTA_LOGGER_IMAGE}
+    image: ${ROSETTA_IMAGE}
     environment:
     - CONCORDIUM_ROSETTA_GRPC_HOST=node
     - CONCORDIUM_ROSETTA_GRPC_PORT=10000
