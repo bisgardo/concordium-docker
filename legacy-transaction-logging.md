@@ -21,7 +21,7 @@ The variables may be passed to `docker-compose` or persisted in a `.env` file
 (see [`testnet-txlog.env`](./testnet-txlog.env) and [`mainnet-txlog.env`](./mainnet-txlog.env)).
 For example, run
 
-```
+```shell
 export CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING=
 export TXLOG_PGPASSWORD=<database-password>
 ```

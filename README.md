@@ -10,13 +10,13 @@ using Docker Compose with publicly available images:
 
 *Testnet*
 
-```
+```shell
 NODE_NAME=<node-name> ./run.sh testnet
 ```
 
 *Mainnet*
 
-```
+```shell
 NODE_NAME=<node-name> ./run.sh mainnet
 ```
 
@@ -159,13 +159,13 @@ Once the deadline has passed, the containers are killed with SIGKILL.
 In certain cases (like on startup), the node may need more than a few seconds to terminate gracefully.
 It's therefore good practice to increase this deadline using e.g.
 
-```
+```shell
 docker-compose stop --timeout=120
 ```
 
 An even safer option is to only send it a SIGTERM signal:
 
-```
+```shell
 docker kill --signal=SIGTERM <container>
 ```
 
@@ -250,7 +250,7 @@ To avoid committing incorrectly formatted YAML (and have it rejected by the CI),
 
 The hook is implemented using the [`pre-commit`](https://pre-commit.com/) tool which may be installed using `pip`:
 
-```
+```shell
 pip install pre-commit
 ```
 
