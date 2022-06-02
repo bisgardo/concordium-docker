@@ -132,6 +132,10 @@ The publicly available official options are:
 
 Defining the variable `CONCORDIUM_NODE_LOG_LEVEL_DEBUG` (with any value) enables debug logging for the node.
 
+The node collector starts up with a default delay of 2 mins to avoid filling the log with query errors until the node is ready.
+This may be overridden with the variable `NODE_COLLECTOR_DELAY_MS` which takes the delay in milliseconds.
+The service restarts automatically if it crashes due to too many unsuccessful connection attempts.
+
 Adding `--project-name=<name>` to `docker-compose up` prepends `<name>` to the names of containers and other persistent resources,
 making it possible to switch between networks without having to delete data and existing containers.
 Note that because ports are fixed, running multiple nodes at the same time is not supported with the current setup.
