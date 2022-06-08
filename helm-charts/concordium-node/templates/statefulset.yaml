@@ -30,8 +30,6 @@ spec:
           value: /mnt/data
         - name: CONCORDIUM_NODE_CONFIG_DIR
           value: /mnt/data
-        - name: CONCORDIUM_NODE_CONSENSUS_IMPORT_BLOCKS_FROM
-          value: /mnt/data/blocks.mdb
         - name: CONCORDIUM_NODE_CONSENSUS_GENESIS_DATA_FILE
           value: /mnt/genesis/genesis.dat
         - name: CONCORDIUM_NODE_CONNECTION_BOOTSTRAP_NODES

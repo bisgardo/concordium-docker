@@ -45,3 +45,8 @@ resources: {}
 nodeSelector: {}
 tolerations: []
 affinity: {}
+
+# test configures test parameters.
+test:
+  # concordiumClientVersion is the version used to query the node in tests.
+  concordiumClientVersion: 3.0.4-0
