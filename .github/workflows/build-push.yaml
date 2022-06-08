@@ -22,6 +22,10 @@ jobs:
   build-push:
     runs-on: ubuntu-latest
     steps:
+    - name: Inputs
+      run: |
+        echo "node_tag: ${{ env.node_tag }}"
+        echo "node_image_tag: ${{ env.node_image_tag }}"
     - name: Checkout repository
       uses: actions/checkout@v2
     - name: Log in to Docker Hub
