@@ -2,17 +2,23 @@
 
 # nodeName is the name of the node to be presented on the public dashboard.
 # Leave empty to disable the collector container entirely.
-nodeName: test
+nodeName: ""
+
+# domain is the domain of the network and is used to locate the bootstrapper and dashboard backend for the collector.
+# If empty, then the domain is inferred from the network name.
+domain: ""
+
+# network is the name of the network to join.
+# The chart expects to find a field with the name of the network in the configmap 'genesis'.
+# If domain is empty, then it's inferred from the network as follows:
+# If network is "mainnet", then domain is "mainnet.concordium.software".
+# Otherwise, domain is "<network>.concordium.com".
+network: testnet
 
 # image is the image repository and tag to used for the 'node' and 'collector' containers.
 image:
   repository: bisgardo/concordium-node
-  tag: "1.0.1-0_1"
-
-# genesisImage is the image repository and tag to used for the 'init-genesis` container.
-genesisImage:
-  repository: bisgardo/concordium-node-genesis
-  tag: "mainnet-0"
+  tag: "3.0.2-0_1"
 
 # service configures the service type and the ports of the individual endpoints exposed by the service.
 service:
@@ -22,10 +28,10 @@ service:
     metrics: 9090
     rpc: 10000
 
-# storage configures the class and size of the persistent volume that the database is stored in.
+# storage configures the class and size of the persistent volume in which the LMDB database is stored.
 storage:
   className: standard
-  size: 10Gi
+  size: 100Gi
 
 # The fields below are kept from the scaffolding initialized by Helm to do detailed configuration of the deployment.
 # See their use in 'templates/statefulset.yaml' and lookup the docs of the relevant fields in the official API docs
@@ -39,3 +45,8 @@ resources: {}
 nodeSelector: {}
 tolerations: []
 affinity: {}
+
+# test configures test parameters.
+test:
+  # concordiumClientVersion is the version used to query the node in tests.
+  concordiumClientVersion: 3.0.4-0

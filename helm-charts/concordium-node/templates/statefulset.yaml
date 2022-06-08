@@ -24,15 +24,22 @@ spec:
       containers:
       - name: node
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        command:
-        - /concordium-node
-        - --data-dir=/mnt/data
-        - --config-dir=/mnt/data
-        - --bootstrap-node=bootstrap.mainnet.concordium.software:8888
-        - --rpc-server-addr=0.0.0.0
-        - --prometheus-server
-        - --prometheus-listen-addr=0.0.0.0
-        - --no-dnssec
+        command: [ /concordium-node ]
+        env:
+        - name: CONCORDIUM_NODE_DATA_DIR
+          value: /mnt/data
+        - name: CONCORDIUM_NODE_CONFIG_DIR
+          value: /mnt/data
+        - name: CONCORDIUM_NODE_CONSENSUS_GENESIS_DATA_FILE
+          value: /mnt/genesis/genesis.dat
+        - name: CONCORDIUM_NODE_CONNECTION_BOOTSTRAP_NODES
+          value: "bootstrap.{{ include "domain" . }}:8888"
+        - name: CONCORDIUM_NODE_RPC_SERVER_ADDR
+          value: "0.0.0.0"
+        - name: CONCORDIUM_NODE_PROMETHEUS_SERVER
+          value: "1"
+        - name: CONCORDIUM_NODE_PROMETHEUS_LISTEN_ADDRESSS
+          value: "0.0.0.0"
         ports:
         - name: p2p
           containerPort: 8888
@@ -49,22 +56,29 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /mnt/data
+        - name: genesis
+          mountPath: /mnt/genesis
       {{- if .Values.nodeName }}
       - name: collector
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        command:
-        - /node-collector
-        - --collector-url=http://dashboard.mainnet.concordium.software/nodes/post
-        - --grpc-host=http://localhost:10000
-        - --node-name={{ .Values.nodeName }}
+        command: [ /node-collector ]
+        env:
+        - name: CONCORDIUM_NODE_COLLECTOR_URL
+          value: "https://dashboard.{{ include "domain" . }}/nodes/post"
+        - name: CONCORDIUM_NODE_COLLECTOR_GRPC_HOST
+          value: "http://localhost:10000"
+        - name: CONCORDIUM_NODE_COLLECTOR_NODE_NAME
+          value: "{{ .Values.nodeName }}"
+        - name: CONCORDIUM_NODE_COLLECTOR_ARTIFICIAL_START_DELAY
+          value: "120000" # 2m
       {{- end }}
-      initContainers:
-      - name: init-genesis
-        image: "{{ .Values.genesisImage.repository }}:{{ .Values.genesisImage.tag }}"
-        command: cp /genesis.dat /mnt/data/genesis.dat
-        volumeMounts:
-        - name: data
-          mountPath: /mnt/data
+      volumes:
+      - name: genesis
+        configMap:
+          name: genesis
+          items:
+          - key: "{{ .Values.network }}"
+            path: ./genesis.dat
       enableServiceLinks: false
       {{- with .Values.restartPolicy }}
       restartPolicy: {{ . }}
