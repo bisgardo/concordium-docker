@@ -19,10 +19,11 @@ if __name__ == '__main__':
     database = os.getenv('PGDATABASE', 'concordium_txlog')
     user = os.getenv('PGUSER', 'postgres')
     password = os.getenv('PGPASSWORD')
-    account_address_bytes = address_to_bytes(sys.argv[1])
-
-    print("Address (Base58Check):", base58check_from_bytes(account_address_bytes))
-    print("Address (Hex)        :", account_address_bytes.hex())
+    # account_address_bytes = address_to_bytes(sys.argv[1])
+    transaction_type = sys.argv[1]
+    #
+    # print("Address (Base58Check):", base58check_from_bytes(account_address_bytes))
+    # print("Address (Hex)        :", account_address_bytes.hex())
 
     connection = connect(
         host=host,
@@ -32,7 +33,9 @@ if __name__ == '__main__':
         password=password,
     )
 
-    rows = query_by_address_bytes(connection, account_address_bytes)
+    # rows = query_by_address_bytes(connection, account_address_bytes)
+    rows = query_by_transaction_type(connection, transaction_type)
     for address, block, timestamp, height, summary_json in rows:
-        assert address.tobytes() == account_address_bytes
-        print(summary_json)
+        # assert address.tobytes() == account_address_bytes
+        # print(summary_json)
+        print(height)
