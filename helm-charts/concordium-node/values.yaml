@@ -1,28 +1,25 @@
 # Default values for concordium-node.
 
-# nodeName is the name of the node to be presented on the public dashboard.
-# Leave empty to disable the collector container entirely.
-nodeName: ""
-
 # domain is the domain of the network and is used to locate the bootstrapper and dashboard backend for the collector.
-# If empty, then the domain is inferred from the network name.
+# If empty, then the value is inferred from the network field (below) as follows:
+# - If network is "mainnet", then domain is "mainnet.concordium.software".
+# - Otherwise, domain is "<network>.concordium.com".
 domain: ""
 
 # network is the name of the network to join.
 # The chart expects to find a field with the name of the network in the configmap 'genesis'.
-# If domain is empty, then it's inferred from the network as follows:
-# If network is "mainnet", then domain is "mainnet.concordium.software".
-# Otherwise, domain is "<network>.concordium.com".
+# The value of network is used to infer the domain field in case it's empty, as described above.
 network: testnet
 
-app:
-  node:
-    # image is the name of the image used for the 'node' container.
-    image: "bisgardo/concordium-node:3.0.2-0_1"
-  collector:
-    # image is the name of the image used for the 'collector' container.
-    # If empty, this defaults to the node image.
-    image: ""
+node:
+  # name is the name of the node to be presented on the public dashboard.
+  # Leaving empty will disable the collector container entirely.
+  name: ""
+  # image is the name of the image used for the 'node' container.
+  image: "bisgardo/concordium-node:3.0.2-0_1"
+  # collectorImage is the name of the image used for the 'collector' container.
+  # If empty, this defaults to the node image.
+  collectorImage: ""
 
 # service configures the service type and the ports of the individual endpoints exposed by the service.
 service:
