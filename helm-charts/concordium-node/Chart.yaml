@@ -2,5 +2,5 @@ apiVersion: v2
 name: concordium-node
 description: "Deployment of a concordium-node instance with an optional collector companion."
 type: application
-version: "0.2.0"
+version: "0.3.0"
 appVersion: "3.0.2"
