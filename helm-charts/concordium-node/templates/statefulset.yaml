@@ -23,7 +23,7 @@ spec:
       {{- end }}
       containers:
       - name: node
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        image: "{{ .Values.node.image }}"
         command: [ /concordium-node ]
         env:
         - name: CONCORDIUM_NODE_DATA_DIR
@@ -58,9 +58,9 @@ spec:
           mountPath: /mnt/data
         - name: genesis
           mountPath: /mnt/genesis
-      {{- if .Values.nodeName }}
+      {{- if .Values.node.name }}
       - name: collector
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        image: "{{ .Values.node.collectorImage | default .Values.node.image }}"
         command: [ /node-collector ]
         env:
         - name: CONCORDIUM_NODE_COLLECTOR_URL
@@ -68,9 +68,7 @@ spec:
         - name: CONCORDIUM_NODE_COLLECTOR_GRPC_HOST
           value: "http://localhost:10000"
         - name: CONCORDIUM_NODE_COLLECTOR_NODE_NAME
-          value: "{{ .Values.nodeName }}"
-        - name: CONCORDIUM_NODE_COLLECTOR_ARTIFICIAL_START_DELAY
-          value: "120000" # 2m
+          value: "{{ .Values.node.name }}"
       {{- end }}
       volumes:
       - name: genesis
