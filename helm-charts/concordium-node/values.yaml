@@ -15,10 +15,14 @@ domain: ""
 # Otherwise, domain is "<network>.concordium.com".
 network: testnet
 
-# image is the image repository and tag to used for the 'node' and 'collector' containers.
-image:
-  repository: bisgardo/concordium-node
-  tag: "3.0.2-0_1"
+app:
+  node:
+    # image is the name of the image used for the 'node' container.
+    image: "bisgardo/concordium-node:3.0.2-0_1"
+  collector:
+    # image is the name of the image used for the 'collector' container.
+    # If empty, this defaults to the node image.
+    image: ""
 
 # service configures the service type and the ports of the individual endpoints exposed by the service.
 service:
