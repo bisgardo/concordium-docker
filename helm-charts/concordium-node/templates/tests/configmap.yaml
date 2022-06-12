@@ -12,4 +12,4 @@ data:
     wget -O ./concordium-client https://distribution.concordium.software/tools/linux/concordium-client_{{ .Values.test.concordiumClientVersion }}
     chmod +x ./concordium-client
     # Ping a random replica.
-    ./concordium-client --grpc-ip={{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local --grpc-port=10000 consensus status
+    ./concordium-client --grpc-ip={{ include "fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local --grpc-port=10000 consensus status

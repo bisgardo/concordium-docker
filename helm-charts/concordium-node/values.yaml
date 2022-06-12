@@ -38,6 +38,8 @@ storage:
 # See their use in 'templates/statefulset.yaml' and lookup the docs of the relevant fields in the official API docs
 # (https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.21/).
 
+nameOverride: ""
+fullnameOverride: ""
 restartPolicy: Always
 podAnnotations: {}
 podSecurityContext: {}

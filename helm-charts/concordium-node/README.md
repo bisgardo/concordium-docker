@@ -22,15 +22,17 @@ Some of the following will have to be set up for the chart to start running succ
 It's not important to do any of it before installing the chart
 as Kubernetes will just wait for the relevant resources to be present.
 
-The node depends on a configmap holding the genesis data file.
-Install using the following command, executed from the project root:
+The node depends on a configmap `genesis` holding the genesis data files for all relevant networks.
+Install using the following command (executed from this directory):
 
 ```shell
-kubectl create configmap genesis --from-file=testnet=./genesis/testnet-0.dat --from-file=mainnet=./genesis/mainnet-0.dat
+kubectl create configmap genesis --from-file=testnet=../../genesis/testnet-0.dat --from-file=mainnet=../../genesis/mainnet-0.dat
 ```
 
+Add other networks at will.
+
 If running with a "lesser managed" Kubernetes cluster, the persistent volume might need to be created manually.
-The example PV spec in `local-persistentvolume.yaml` may be setup using
+The example PV spec of a 100 GiB volume in `local-persistentvolume.yaml` may be setup using
 
 ```shell
 kubectl apply -f ./local-persistentvolume.yaml
