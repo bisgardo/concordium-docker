@@ -1,38 +1,42 @@
 #!/usr/bin/env python
 
-from representations import *
+from json import loads
 from query import *
-import sys, os
-
-
-def address_to_bytes(a):
-    # Attempt to parse as Base58Check, falling back to hex (with optional prefix).
-    try:
-        return bytes_from_base58check(a)
-    except:
-        return bytes.fromhex(a[a.find('x')+1:]) # strip any prefix ending with 'x'
+from jsondiff import diff
+import sys
 
 
 if __name__ == '__main__':
-    host = os.getenv('PGHOST', 'localhost')
-    port = int(os.getenv('PGPORT', '5432'))
-    database = os.getenv('PGDATABASE', 'concordium_txlog')
-    user = os.getenv('PGUSER', 'postgres')
-    password = os.getenv('PGPASSWORD')
-    account_address_bytes = address_to_bytes(sys.argv[1])
+    block_height = sys.argv[1]
+    block_hash1 = sys.argv[2]
+    block_hash2 = sys.argv[3]
 
-    print("Address (Base58Check):", base58check_from_bytes(account_address_bytes))
-    print("Address (Hex)        :", account_address_bytes.hex())
-
-    connection = connect(
-        host=host,
-        port=port,
-        database=database,
-        user=user,
-        password=password,
+    connection1 = connect(
+        host='localhost',
+        database='testnet_concordium_txlog',
+        port=5432,
+        user='postgres',
+        password='1234',
+    )
+    connection2 = connect(
+        host='localhost',
+        database='testnet_concordium_txlog_service',
+        port=5432,
+        user='postgres',
+        password='1234',
     )
 
-    rows = query_by_address_bytes(connection, account_address_bytes)
-    for address, block, timestamp, height, summary_json in rows:
-        assert address.tobytes() == account_address_bytes
-        print(summary_json)
+    row1 = query_by_block_height_and_hash(connection1, block_height, block_hash1)[0]
+    row2 = query_by_block_height_and_hash(connection2, block_height, block_hash2)[0]
+
+    res1 = loads(row1[4])
+    res2 = loads(row2[4])
+    #print(row1[4])
+    #print(row2[4])
+
+    if res1 == res2:
+        print('Parsed results match!')
+    else:
+        print('Parsed results differ:')
+        diff_res = diff(res1, res2)
+        print(diff_res)
