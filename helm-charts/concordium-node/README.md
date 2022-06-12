@@ -22,7 +22,8 @@ Some of the following will have to be set up for the chart to start running succ
 It's not important to do any of it before installing the chart
 as Kubernetes will just wait for the relevant resources to be present.
 
-The node depends on a configmap holding the genesis data file. Install using the following command, executed from the project root:
+The node depends on a configmap holding the genesis data file.
+Install using the following command, executed from the project root:
 
 ```shell
 kubectl create configmap genesis --from-file=testnet=./genesis/testnet-0.dat --from-file=mainnet=./genesis/mainnet-0.dat
@@ -35,7 +36,7 @@ The example PV spec in `local-persistentvolume.yaml` may be setup using
 kubectl apply -f ./local-persistentvolume.yaml
 ```
 
-In the case of Minikube, there is an addon `storage-provisioner` that enables automatic provisioning. Enable using
+In the case of Minikube, there is an addon `storage-provisioner` that enables automatic provisioning; enable using
 
 ```shell
 minikube addons enable storage-provisioner
@@ -43,10 +44,10 @@ minikube addons enable storage-provisioner
 
 ## Install
 
-Install or upgrade the chart using the command:
+Install or upgrade the chart as release name `concordium-node` using the command
 
 ```shell
-helm upgrade --install concordium-node . --set=nodeName=<name> --set=network=<network>
+helm upgrade --install concordium-node . --set=node.name=<name> --set=network=<network>
 ```
 
 where `<name>` is the name of the node to be presented on the
