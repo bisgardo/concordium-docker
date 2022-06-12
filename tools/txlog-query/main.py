@@ -29,6 +29,11 @@ if __name__ == '__main__':
     row1 = query_by_block_height_and_hash(connection1, block_height, block_hash1)[0]
     row2 = query_by_block_height_and_hash(connection2, block_height, block_hash2)[0]
 
+    for i in range(0, 4):
+        if row1[i] != row1[i]:
+            print('inconsistency!')
+            exit(1)
+
     res1 = loads(row1[4])
     res2 = loads(row2[4])
     #print(row1[4])
@@ -40,3 +45,4 @@ if __name__ == '__main__':
         print('Parsed results differ:')
         diff_res = diff(res1, res2)
         print(diff_res)
+        exit(2)
