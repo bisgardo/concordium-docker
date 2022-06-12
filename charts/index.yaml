@@ -3,6 +3,17 @@ entries:
   concordium-node:
   - apiVersion: v2
     appVersion: 3.0.2
+    created: "2022-06-12T22:00:36.267308333Z"
+    description: Deployment of a concordium-node instance with an optional collector
+      companion.
+    digest: 0cba2d0bef84bf75f6cc77749580380c9b7520865754f320f9da0fb4a77014fc
+    name: concordium-node
+    type: application
+    urls:
+    - https://github.com/bisgardo/concordium-docker/releases/download/concordium-node-0.3.1/concordium-node-0.3.1.tgz
+    version: 0.3.1
+  - apiVersion: v2
+    appVersion: 3.0.2
     created: "2022-06-08T14:52:02.239199135Z"
     description: Deployment of a concordium-node instance with an optional collector
       companion.
@@ -12,4 +23,4 @@ entries:
     urls:
     - https://github.com/bisgardo/concordium-docker/releases/download/concordium-node-0.2.0/concordium-node-0.2.0.tgz
     version: 0.2.0
-generated: "2022-06-08T14:52:02.239225435Z"
+generated: "2022-06-12T22:00:36.267317933Z"
