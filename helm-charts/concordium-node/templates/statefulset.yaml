@@ -96,7 +96,7 @@ spec:
     spec:
       accessModes:
       - ReadWriteOnce
-      storageClassName: {{ default "standard" .Values.storage.className }}
+      storageClassName: "{{ .Values.storage.className }}"
       resources:
         requests:
-          storage: {{ .Values.storage.size }}
+          storage: "{{ .Values.storage.size }}"
