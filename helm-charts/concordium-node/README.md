@@ -26,7 +26,7 @@ The node depends on a configmap `genesis` holding the genesis data files for all
 Install using the following command (executed from this directory):
 
 ```shell
-kubectl create configmap genesis --from-file=testnet=../../genesis/testnet-0.dat --from-file=mainnet=../../genesis/mainnet-0.dat
+kubectl create configmap genesis --from-file=testnet=../../genesis/testnet-1.dat --from-file=mainnet=../../genesis/mainnet-0.dat
 ```
 
 Add other networks at will.

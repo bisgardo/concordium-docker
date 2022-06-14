@@ -46,7 +46,7 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from caching
 the cloned source code at the current commit.
 
-The currently active tag (as of 2022-05-23) is `3.0.2-0` for mainnet and `4.0.11-0` for testnet.
+The currently active tag (as of 2022-06-13) is `3.0.2-0` for mainnet and `4.1.1-1` for testnet.
 
 *Optional*
 
@@ -72,8 +72,8 @@ allowing it to be passed as a simple bind mount.
 
 To this end, the following genesis files are located in directory [`genesis`](./genesis):
 
-- `mainnet-0.dat`: Initial genesis data for the mainnet ([source](https://distribution.mainnet.concordium.software/data/genesis.dat)).
-- `testnet-0.dat`: Initial genesis data for the current testnet ([source](https://distribution.testnet.concordium.com/data/genesis.dat)).
+- `mainnet-0.dat`: Initial genesis data for the mainnet (started on 2021-06-09; [source](https://distribution.mainnet.concordium.software/data/genesis.dat)).
+- `testnet-1.dat`: Genesis data for the current testnet (started on 2022-06-13; [source](https://distribution.testnet.concordium.com/data/genesis.dat)).
 
 The directory also holds the now-unused dockerfile for the genesis image. See commit `17dde7d` for the old instructions.
 
