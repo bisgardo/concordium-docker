@@ -195,7 +195,7 @@ and may run against multiple nodes that don't need any particular configuration 
 This project used to support the legacy method, but no longer does.
 
 The Docker Compose file includes a transaction logger instance under the profile `txlog`.
-The [image](https://hub.docker.com/r/concordium/transaction-logger/tags) is specified with the variable `TXLOG_IMAGE`.
+The [image](https://hub.docker.com/r/concordium/transaction-logger/tags) is specified with the variable `TRANSACTION_LOGGER_IMAGE`.
 
 Database credentials etc. are configured with the following variables:
 
