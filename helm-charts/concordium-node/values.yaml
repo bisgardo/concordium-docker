@@ -16,7 +16,7 @@ node:
   # Leaving empty will disable the collector container entirely.
   name: ""
   # image is the name of the image used for the 'node' container.
-  image: "bisgardo/concordium-node:3.0.2-0_1"
+  image: "bisgardo/concordium-node:4.1.1-1_0"
   # collectorImage is the name of the image used for the 'collector' container.
   # If empty, this defaults to the node image.
   collectorImage: ""

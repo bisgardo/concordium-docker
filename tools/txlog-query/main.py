@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
-from representations import *
+import os
+import sys
+
 from query import *
-import sys, os
+from representations import *
 
 
 def address_to_bytes(a):
@@ -10,7 +12,7 @@ def address_to_bytes(a):
     try:
         return bytes_from_base58check(a)
     except:
-        return bytes.fromhex(a[a.find('x')+1:]) # strip any prefix ending with 'x'
+        return bytes.fromhex(a[a.find('x') + 1:])  # strip any prefix ending with 'x'
 
 
 if __name__ == '__main__':
