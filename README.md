@@ -188,13 +188,29 @@ docker run --rm concordium-node:<tag> /concordium-node --help | less
 
 The Concordium Node includes the ability to
 [log transactions to an external PostgreSQL database](https://github.com/Concordium/concordium-node/blob/main/docs/transaction-logging.md).
-There are two methods of doing this:
+Due to various shortcomings, this feature is now deprecated in favor of an
+[independent service](https://github.com/Concordium/concordium-transaction-logger):
+The service is deployed separately, handles errors gracefully,
+and may run against multiple nodes that don't need any particular configuration or state.
+This project used to support the legacy method, but no longer does.
 
-- By the node itself: This method is considered legacy and is [documented separately](./legacy-transaction-logging.md).
-- By an [independent service](https://github.com/Concordium/concordium-transaction-logger):
-  The service is deployed separately, handles errors gracefully, and may run against multiple nodes without any particular configuration.
-  This service is intended to replace the legacy method.
-  The Docker Compose file includes this component under the profile `transaction-logger`.
+The Docker Compose file includes a transaction logger instance under the profile `txlog`.
+The [image](https://hub.docker.com/r/concordium/transaction-logger/tags) is specified with the variable `TXLOG_IMAGE`.
+
+Database credentials etc. are configured with the following variables:
+
+- `TXLOG_PGDATABASE` (default: `concordium_txlog`): Name of the database in the PostgreSQL instance created for the purpose.
+- `TXLOG_PGHOST` (default: `172.17.0.1`): DNS or IP address of the host.
+  The default value assumes that the PostgreSQL instance is running natively, i.e. outside of Docker.
+- `TXLOG_PGPORT` (default: `5432`): Port of the PostgreSQL instance.
+- `TXLOG_PGUSER` (default: `postgres`): Username of the PostgreSQL user used to log the transactions.
+- `TXLOG_PGPASSWORD`: Password of the PostgreSQL user.
+
+The variables may be passed to the `docker-compose` command above or persisted in a `.env` file as described below
+(see [`testnet+txlog.env`](./testnet+txlog.env) and [`mainnet+txlog.env`](./mainnet+txlog.env);
+note that `TXLOG_PGPASSWORD` still has to be passed explicitly).
+
+See [`postgresql.md`](./postgresql.md) for instructions on how to set up a local database.
 
 ## CI: Public images
 
@@ -221,12 +237,12 @@ and may simplify this into
 NODE_NAME=my_node ./run.sh <network>
 ```
 
-For running with (duplicate) [transaction logging](./legacy-transaction-logging.md) enabled, use the `txlog` variant, e.g.:
+For running with [transaction logging](#transaction-logging) enabled, use the `+txlog` variant, e.g.:
 
 ```shell
 export TRANSACTION_LOGGER_PGPASSWORD=<database-password>
 export TXLOG_PGPASSWORD=<database-password>
-NODE_NAME=my_node ./run.sh <network>-txlog
+NODE_NAME=my_node ./run.sh <network>+txlog
 ```
 
 Working environment files that reference the most recently built public images
