@@ -33,19 +33,13 @@ services:
     - CONCORDIUM_NODE_RPC_SERVER_ADDR=0.0.0.0
     - CONCORDIUM_NODE_PROMETHEUS_SERVER=1
     - CONCORDIUM_NODE_PROMETHEUS_LISTEN_ADDRESSS=0.0.0.0
-    # We currently cannot define a shorthand variable for 'CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING' specifically,
-    # because the application enables tx logging if it's defined with *any* value (including empty).
-    # The only way that Docker Compose supports defining the variable on some cases and not others
-    # is to pass it directly like this.
-    # The node parses the variable through the library 'clap' which improved this behavior in v3.0.0
-    # (in 'https://github.com/clap-rs/clap/pull/2664' to be precise),
-    # but the node has not yet upgraded past that version.
-    - CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING
-    - CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING_HOST=${TXLOG_PGHOST-172.17.0.1}
-    - CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING_PORT=${TXLOG_PGPORT-5432}
-    - CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING_NAME=${TXLOG_PGDATABASE-concordium_txlog}
-    - CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING_USERNAME=${TXLOG_PGUSER-postgres}
-    - CONCORDIUM_NODE_TRANSACTION_OUTCOME_LOGGING_PASSWORD=${TXLOG_PGPASSWORD-}
+      # We currently cannot define a shorthand variable for 'CONCORDIUM_NODE_LOG_LEVEL'
+      # because the application treats this as enabled if it's defined with *any* value (including empty).
+      # The only way that Docker Compose supports defining the variable on some cases and not others
+      # is to pass it directly like this.
+      # The node parses the variable through the library 'clap' which improved this behavior in v3.0.0
+      # (in 'https://github.com/clap-rs/clap/pull/2664' to be precise),
+      # but the node has not yet upgraded past that version.
     - CONCORDIUM_NODE_LOG_LEVEL_DEBUG
     # Defer container start until the init containers have completed successfully.
     # Note that no logs are emitted on stdout until all containers have started.
@@ -110,16 +104,16 @@ services:
       args:
         tag: main
   transaction-logger:
-    profiles: [transaction-logger]
+    profiles: [txlog]
     image: ${TRANSACTION_LOGGER_IMAGE}
     environment:
     - TRANSACTION_LOGGER_NODES=http://node:10000
     - TRANSACTION_LOGGER_DB_STRING=
-        host=${TRANSACTION_LOGGER_PGHOST-172.17.0.1}
-        port=${TRANSACTION_LOGGER_PGPORT-5432}
-        dbname=${TRANSACTION_LOGGER_PGDATABASE-concordium_txlog_service}
-        user=${TRANSACTION_LOGGER_PGUSER-postgres}
-        password=${TRANSACTION_LOGGER_PGPASSWORD-}
+        host=${TXLOG_PGHOST-172.17.0.1}
+        port=${TXLOG_PGPORT-5432}
+        dbname=${TXLOG_PGDATABASE-concordium_txlog}
+        user=${TXLOG_PGUSER-postgres}
+        password=${TXLOG_PGPASSWORD-}
     - TRANSACTION_LOGGER_LOG_LEVEL=debug
     depends_on:
     - node
