@@ -76,6 +76,16 @@ services:
     restart: unless-stopped  # service may time out before the node is operational
                              # (shouldn't use 'on-failure' as that will make the container auto start on boot)
     stop_signal: SIGKILL     # application doesn't react to SIGINT nor SIGTERM
+  prometheus:
+    profiles: [prometheus]
+    image: ${PROMETHEUS_IMAGE}
+    networks:
+    - concordium
+    ports:
+    - "9009:9090" # web UI
+    volumes:
+    - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    - metrics:/prometheus
   node-dashboard-grpc-proxy:
     profiles: [node-dashboard]
     image: envoyproxy/envoy:v1.18-latest
@@ -122,5 +132,6 @@ services:
 volumes:
   data:
   config:
+  metrics:
 networks:
   concordium:

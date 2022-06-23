@@ -140,8 +140,9 @@ Adding `--project-name=<name>` to `docker-compose up` prepends `<name>` to the n
 making it possible to switch between networks without having to delete data and existing containers.
 Note that because ports are fixed, running multiple nodes at the same time is not supported with the current setup.
 
-Adding `--profile=node-dashboard` (or `COMPOSE_PROFILES=node-dashboard`) enables a Node Dashboard
-and an accompanying Envoy gRPC proxy instance to be started up as part of the deployment.
+Enabling profile `node-dashboard` (i.e. adding `--profile=node-dashboard` or setting `COMPOSE_PROFILES=node-dashboard`)
+activates a Node Dashboard instance on port `8099` (and an accompanying Envoy gRPC proxy instance)
+to be started up as part of the deployment.
 
 The command will automatically build the images from scratch if they don't already exist.
 Set the flag `--no-build` to prevent that.
@@ -175,6 +176,14 @@ docker kill --signal=SIGTERM <container>
 
 Stopping the node during the initial out-of-band catchup is not recommended
 as it might lead to internal data corruption.
+
+### Metrics
+
+The node exposes a few metrics as a [Prometheus](https://prometheus.io/) scrape endpoint on port `9090`.
+If profile `prometheus` is enabled, a Prometheus [instance](https://hub.docker.com/r/prom/prometheus)
+that is configured to scrape itself and the node (see [prometheus.yml](./prometheus.yml) for the configuration)
+is started as well.
+The web UI of that service is exposed to the host on port `9009`.
 
 ## Usage
 
