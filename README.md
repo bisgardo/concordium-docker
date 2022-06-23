@@ -193,7 +193,7 @@ Due to various shortcomings, this feature is now deprecated in favor of an equiv
 The service is deployed separately, handles errors gracefully,
 and may run against multiple nodes that don't need any particular configuration or state.
 The DB schemas are documented in the links above.
-This project used to support the legacy method, but this was removed in commit `fd9e77e`.
+This project used to support the legacy method, but this was removed in commit `6933166`.
 
 The Docker Compose file includes a transaction logger instance under the profile `txlog`.
 The [image](https://hub.docker.com/r/concordium/transaction-logger/tags) is specified with the variable `TRANSACTION_LOGGER_IMAGE`.
