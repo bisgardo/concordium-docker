@@ -1,0 +1,328 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "iteration": 1656101596266,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "QWu5d237k"
+      },
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 31,
+      "panels": [],
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "QWu5d237k"
+          },
+          "refId": "A"
+        }
+      ],
+      "title": "Node Metrics",
+      "type": "row"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "QWu5d237k"
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "hiddenSeries": false,
+      "id": 5,
+      "legend": {
+        "alignAsTable": false,
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "maxPerRow": 4,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.0.1",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "repeat": "metrics",
+      "repeatDirection": "h",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "QWu5d237k"
+          },
+          "editorMode": "code",
+          "expr": "$metrics",
+          "interval": "",
+          "legendFormat": "Node",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "$metrics",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false
+      }
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "hide": 2,
+        "includeAll": true,
+        "multi": true,
+        "name": "metrics",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": false,
+            "text": "avg_bps_in",
+            "value": "avg_bps_in"
+          },
+          {
+            "selected": false,
+            "text": "avg_bps_out",
+            "value": "avg_bps_out"
+          },
+          {
+            "selected": false,
+            "text": "bytes_received",
+            "value": "bytes_received"
+          },
+          {
+            "selected": false,
+            "text": "bytes_sent",
+            "value": "bytes_sent"
+          },
+          {
+            "selected": false,
+            "text": "conn_received",
+            "value": "conn_received"
+          },
+          {
+            "selected": false,
+            "text": "inbound_high_priority_consensus_counter",
+            "value": "inbound_high_priority_consensus_counter"
+          },
+          {
+            "selected": false,
+            "text": "inbound_high_priority_consensus_drops",
+            "value": "inbound_high_priority_consensus_drops"
+          },
+          {
+            "selected": false,
+            "text": "inbound_high_priority_consensus_size",
+            "value": "inbound_high_priority_consensus_size"
+          },
+          {
+            "selected": false,
+            "text": "inbound_low_priority_consensus_counter",
+            "value": "inbound_low_priority_consensus_counter"
+          },
+          {
+            "selected": false,
+            "text": "inbound_low_priority_consensus_drops",
+            "value": "inbound_low_priority_consensus_drops"
+          },
+          {
+            "selected": false,
+            "text": "inbound_low_priority_consensus_size",
+            "value": "inbound_low_priority_consensus_size"
+          },
+          {
+            "selected": false,
+            "text": "invalid_network_packets_received",
+            "value": "invalid_network_packets_received"
+          },
+          {
+            "selected": false,
+            "text": "invalid_packets_received",
+            "value": "invalid_packets_received"
+          },
+          {
+            "selected": false,
+            "text": "outbound_high_priority_consensus_size",
+            "value": "outbound_high_priority_consensus_size"
+          },
+          {
+            "selected": false,
+            "text": "outbound_low_priority_consensus_size",
+            "value": "outbound_low_priority_consensus_size"
+          },
+          {
+            "selected": false,
+            "text": "packets_dropped",
+            "value": "packets_dropped"
+          },
+          {
+            "selected": false,
+            "text": "packets_received",
+            "value": "packets_received"
+          },
+          {
+            "selected": false,
+            "text": "packets_resend",
+            "value": "packets_resend"
+          },
+          {
+            "selected": false,
+            "text": "packets_sent",
+            "value": "packets_sent"
+          },
+          {
+            "selected": false,
+            "text": "peer_number",
+            "value": "peer_number"
+          },
+          {
+            "selected": false,
+            "text": "queue_size",
+            "value": "queue_size"
+          },
+          {
+            "selected": false,
+            "text": "resend_queue_size",
+            "value": "resend_queue_size"
+          },
+          {
+            "selected": false,
+            "text": "unknown_packets_received",
+            "value": "unknown_packets_received"
+          }
+        ],
+        "query": "avg_bps_in, avg_bps_out, bytes_received, bytes_sent, conn_received, inbound_high_priority_consensus_counter, inbound_high_priority_consensus_drops, inbound_high_priority_consensus_size, inbound_low_priority_consensus_counter, inbound_low_priority_consensus_drops, inbound_low_priority_consensus_size, invalid_network_packets_received, invalid_packets_received, outbound_high_priority_consensus_size, outbound_low_priority_consensus_size, packets_dropped, packets_received, packets_resend, packets_sent, peer_number, queue_size, resend_queue_size, unknown_packets_received",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-3h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "30m"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "timezone": "browser",
+  "title": "Concordium Node (Application)",
+  "uid": "a9c88fe2-cf5e-11eb-b45d-e3ecfdb2ac21",
+  "version": 5,
+  "weekStart": ""
+}
