@@ -1,7 +1,7 @@
 # Except for usage in FROM, these ARGs need to be redeclared in the contexts that they're used in.
 # Default values defined here will still apply if they're not overridden.
 ARG tag
-ARG ghc_version=8.10.4
+ARG ghc_version=9.0.2
 ARG rust_version=1.53.0
 ARG flatbuffers_tag=v2.0.0
 ARG extra_features='instrumentation'
@@ -83,7 +83,7 @@ FROM debian:${debian_base_image_tag}
 # - 'libpq5' (PostgreSQL driver): Used by Node's transaction logging feature.
 # - 'liblmdb0'(LMDB implementation): Used to persist the Node's state.
 RUN apt-get update && \
-    apt-get install -y ca-certificates libpq5 liblmdb0 && \
+    apt-get install -y ca-certificates libpq5 liblmdb0 libnuma1 && \
     rm -rf /var/lib/apt/lists/*
 
 # P2P listen port ('concordium-node').

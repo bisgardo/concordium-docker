@@ -46,11 +46,11 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from caching
 the cloned source code at the current commit.
 
-The currently active tag (as of 2022-06-20) is `4.1.1-1` for both mainnet and testnet.
+The currently active tag (as of 2022-06-20) is `4.1.1-1` for mainnet and `4.2.1-0` for testnet.
 
 *Optional*
 
-The build args `ghc_version` and `rust_version` override the default values of 8.10.4 and 1.53.0, respectively.
+The build args `ghc_version` and `rust_version` override the default values of 9.0.2 and 1.53.0, respectively.
 Additionally, the build arg `extra_features` (defaults to `instrumentation`) set
 desired feature flags (`collector` is hardcoded so should not be specified).
 Note that when `instrumentation` is set,
