@@ -1,7 +1,7 @@
 # Except for usage in FROM, these ARGs need to be redeclared in the contexts that they're used in.
 # Default values defined here will still apply if they're not overridden.
 ARG tag
-ARG ghc_version=8.10.4
+ARG ghc_version=9.0.2
 ARG rust_version=1.53.0
 ARG flatbuffers_tag=v2.0.0
 ARG extra_features='instrumentation'
