@@ -3,7 +3,7 @@
 ARG tag
 ARG ghc_version=9.0.2
 ARG rust_version=1.53.0
-ARG flatbuffers_tag=v2.0.0
+ARG flatbuffers_tag=v2.0.6
 ARG extra_features='instrumentation'
 ARG debian_base_image_tag='buster'
 
