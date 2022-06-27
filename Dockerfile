@@ -83,7 +83,7 @@ FROM debian:${debian_base_image_tag}
 # - 'libpq5' (PostgreSQL driver): Used by Node's transaction logging feature.
 # - 'liblmdb0'(LMDB implementation): Used to persist the Node's state.
 RUN apt-get update && \
-    apt-get install -y ca-certificates libpq5 liblmdb0 && \
+    apt-get install -y ca-certificates libpq5 liblmdb0 libnuma1 && \
     rm -rf /var/lib/apt/lists/*
 
 # P2P listen port ('concordium-node').
