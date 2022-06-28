@@ -3,7 +3,7 @@
 ARG tag
 ARG ghc_version=9.0.2
 ARG rust_version=1.53.0
-ARG flatbuffers_tag=v2.0.0
+ARG flatbuffers_tag=v2.0.6
 ARG extra_features='instrumentation'
 ARG debian_base_image_tag='buster'
 
@@ -27,8 +27,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /build
 ARG flatbuffers_tag
-# Doing a deep clone because some build step uses 'git describe' to print some version.
-# This failing doesn't crash the build, but it's only 32 MB and it looks better in the logs to not have "fatal" errors.
+# Clone with full history because some build step uses 'git describe' to print some version.
+# The build doesn't crash if this fails, but it's only 32 MB and the logs look better without "fatal" errors in them.
 RUN git -c advice.detachedHead=false clone --branch="${flatbuffers_tag}" https://github.com/google/flatbuffers.git .
 RUN cmake -G "Unix Makefiles" . && \
     make -j"$(nproc)" && \
@@ -42,8 +42,8 @@ RUN apt-get update && \
 
 # Install Rust.
 ARG rust_version
-RUN curl https://sh.rustup.rs -sSf | \
-    sh -s -- --profile=minimal --default-toolchain="${rust_version}" --component=clippy -y
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
+    sh -s -- --profile=minimal --default-toolchain="${rust_version}" -y
 ENV PATH="${PATH}:/root/.cargo/bin"
 
 # Copy source.
@@ -58,7 +58,7 @@ COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
 
 # Compile 'concordium-node' (Rust, depends on consensus).
 # Note that feature 'profiling' implies 'static' (i.e. static linking).
-# As the build prodecure expects dynamic linking, that feature should not be used.
+# As the build prodecure expects dynamic linking, that feature must not be used.
 ARG extra_features
 RUN cargo build --manifest-path=./concordium-node/Cargo.toml --release --features="collector,${extra_features}"
 
@@ -82,6 +82,7 @@ FROM debian:${debian_base_image_tag}
 # - 'ca-certificates' (SSL certificates for CAs trusted by Mozilla): Needed for Node Collector to push via HTTPS.
 # - 'libpq5' (PostgreSQL driver): Used by Node's transaction logging feature.
 # - 'liblmdb0'(LMDB implementation): Used to persist the Node's state.
+# - 'libnuma1' (Non-Uniform Memory Architecture management): Low-level dependency.
 RUN apt-get update && \
     apt-get install -y ca-certificates libpq5 liblmdb0 libnuma1 && \
     rm -rf /var/lib/apt/lists/*
