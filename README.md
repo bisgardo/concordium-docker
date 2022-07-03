@@ -201,14 +201,14 @@ As an example, the following command archives the contents of a volume named `da
 into a file `./backup/data.tar.xz` located in such a mount:
 
 ```shell
-docker run --rm --volume=data:/data --volume="${PWD}/backup":/backup concordium-backup tar -Jcf /backup/data.tar.xz /data
+docker run --rm --volume=data:/data --volume="${PWD}/backup":/backup --workdir=/ concordium-backup tar -Jcf ./backup/data.tar.xz ./data
 ```
 
 Restoring the backup into a fresh (or properly wiped) volume is then just a matter of extracting
 instead of creating:
 
 ```shell
-docker run --rm --volume=data:/data --volume="${PWD}"/backup:/backup concordium-backup tar -xf /backup/data.tar.xz
+docker run --rm --volume=data:/data --volume="${PWD}"/backup:/backup --workdir=/ concordium-backup tar -xf ./backup/data.tar.xz
 ```
 
 ## Usage
