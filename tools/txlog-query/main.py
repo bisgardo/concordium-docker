@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
-from translate_address import *
+import os
+import sys
+
 from query import *
-import sys, os
+from representations import *
 
 
 def address_to_bytes(a):
@@ -10,7 +12,7 @@ def address_to_bytes(a):
     try:
         return bytes_from_base58check(a)
     except:
-        return bytes.fromhex(a[a.find('x')+1:]) # strip any prefix ending with 'x'
+        return bytes.fromhex(a[a.find('x') + 1:])  # strip any prefix ending with 'x'
 
 
 if __name__ == '__main__':
@@ -20,6 +22,9 @@ if __name__ == '__main__':
     user = os.getenv('PGUSER', 'postgres')
     password = os.getenv('PGPASSWORD')
     account_address_bytes = address_to_bytes(sys.argv[1])
+
+    print("Address (Base58Check):", base58check_from_bytes(account_address_bytes))
+    print("Address (Hex)        :", account_address_bytes.hex())
 
     connection = connect(
         host=host,

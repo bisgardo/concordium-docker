@@ -1,6 +1,6 @@
 apiVersion: v2
 name: concordium-node
-description: "Deployment of a concordium-node instance with a collector and genesis injection."
+description: "Deployment of a concordium-node instance with an optional collector companion."
 type: application
-version: 0.1.0
-appVersion: 1.0.0
+version: "0.3.2"
+appVersion: "4.1.1"

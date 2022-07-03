@@ -10,13 +10,13 @@ While the tool may be somewhat useful on its own, its real purpose is to serve a
 
 *Build:*
 
-```
+```shell
 docker build -t txlog-query --pull .
 ```
 
 *Run:*
 
-```
+```shell
 docker run -e PGHOST=<db-host> -e PGPORT=<db-port> -e PGDATABASE=<db-name> -e PGUSER=<db-user> -e PGPASSWORD=<db-password> txlog-query <address>
 ```
 
