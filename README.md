@@ -190,18 +190,25 @@ The web UI of that service is exposed to the host on port `9009`.
 Data in a persisted volume may be mounted into a throwaway container and backed up from there,
 for instance by archiving it into a bind mount.
 
-As an example, the following command archives the contents of a volume named `data`
-into a file `./backup/data.tar.gz` located in such a mount:
+The data compresses well with LZMA (usually has `.xz` extension).
+The dockerfile `backup.Dockerfile` builds an image that supports that format:
 
 ```shell
-docker run --rm --volume=data:/data --volume="$PWD"/backup:/backup --workdir=/ busybox:stable tar -zcf ./backup/data.tar.gz ./data
+docker build -f backup.Dockerfile -t concordium-backup --pull .
+```
+
+As an example, the following command archives the contents of a volume named `data`
+into a file `./backup/data.tar.xz` located in such a mount:
+
+```shell
+docker run --rm --volume=data:/data --volume="${PWD}/backup":/backup concordium-backup tar -Jcf /backup/data.tar.xz /data
 ```
 
 Restoring the backup into a fresh (or properly wiped) volume is then just a matter of extracting
 instead of creating:
 
 ```shell
-docker run --rm --volume=data:/data --volume="$PWD"/backup:/backup --workdir=/ busybox:stable tar -zxf ./backup/data.tar.gz
+docker run --rm --volume=data:/data --volume="${PWD}"/backup:/backup concordium-backup tar -xf /backup/data.tar.xz
 ```
 
 ## Usage
