@@ -197,11 +197,11 @@ The dockerfile `backup.Dockerfile` builds an image that supports that format:
 docker build -f backup.Dockerfile -t concordium-backup --pull .
 ```
 
-As an example, the following command archives the contents of a volume `data`
+As an example, the following command archives the contents of a volume `data` (excluding any `blocks.mdb` file with OOB catchup data)
 into a file `./backup/data.tar.xz` located in a bind mount:
 
 ```shell
-docker run --rm --volume=data:/data --volume="${PWD}/backup":/backup --workdir=/ concordium-backup tar -Jcf ./backup/data.tar.xz ./data
+docker run --rm --volume=data:/data --volume="${PWD}/backup":/backup --workdir=/ concordium-backup tar -Jcf ./backup/data.tar.xz --exclude=blocks.mdb  ./data
 ```
 
 Restoring the backup at `./backup/data.tar.xz` into a fresh (or properly wiped) volume `data`
