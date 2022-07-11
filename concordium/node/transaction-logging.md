@@ -1,4 +1,31 @@
-# Setting up PostgreSQL
+# Transaction logging
+
+The Concordium Node includes the ability to
+[log transactions to an external PostgreSQL database](https://github.com/Concordium/concordium-node/blob/main/docs/transaction-logging.md).
+Due to various shortcomings, this feature is now deprecated in favor of an equivalent
+[independent service](https://github.com/Concordium/concordium-transaction-logger):
+The service is deployed separately, handles errors gracefully,
+and may run against multiple nodes that don't need any particular configuration or state.
+The DB schemas are documented in the links above.
+This project used to support the legacy method, but this was removed in commit `6933166`.
+
+The Docker Compose file includes a transaction logger instance under the profile `txlog`.
+The [image](https://hub.docker.com/r/concordium/transaction-logger/tags) is specified with the variable `TRANSACTION_LOGGER_IMAGE`.
+
+Database credentials etc. are configured with the following variables:
+
+- `TXLOG_PGDATABASE` (default: `concordium_txlog`): Name of the database in the PostgreSQL instance created for the purpose.
+- `TXLOG_PGHOST` (default: `172.17.0.1`): DNS or IP address of the host.
+  The default value assumes that the PostgreSQL instance is running natively, i.e. outside of Docker.
+- `TXLOG_PGPORT` (default: `5432`): Port of the PostgreSQL instance.
+- `TXLOG_PGUSER` (default: `postgres`): Username of the PostgreSQL user used to log the transactions.
+- `TXLOG_PGPASSWORD`: Password of the PostgreSQL user.
+
+The variables may be passed to the `docker-compose` command above or persisted in a `.env` file as described below
+(see [`testnet+txlog.env`](./testnet+txlog.env) and [`mainnet+txlog.env`](./mainnet+txlog.env);
+note that `TXLOG_PGPASSWORD` still has to be passed explicitly).
+
+## Setting up local PostgreSQL instance
 
 One way to deploy the database is to include it as an extra service in the Docker Compose file
 (might be included under a specific profile in the future).

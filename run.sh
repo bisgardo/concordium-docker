@@ -9,7 +9,7 @@
 # where <network> is the network on which the node is intended to join
 # and <node-name> is the name of the node to appear on the dashboard of that network.
 # 
-# The parameters of the deployment are loaded from an environmnent file <network>.env in the current working directory.
+# The parameters of the deployment are loaded from an environmnent file ./env/<network>.env in the current working directory.
 # All images referenced in this file are expected to be pullable from the appropriate image registry.
 # 
 # Environment files are predefined for the public Testnet and Mainnet networks.
@@ -29,7 +29,7 @@ if [ -z "${NODE_NAME-}" ]; then
 fi
 
 
-env_file="./${network}.env"
+env_file="./env/${network}.env"
 if ! [ -f "${env_file}" ]; then
 	if [ -e "${env_file}" ]; then
 		>&2 echo "Error: Environment file '${env_file}' for network '${network}' is not a regular file."
