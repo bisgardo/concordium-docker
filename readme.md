@@ -3,6 +3,35 @@
 A collection of configuration files, documentation, and tools that make up a complete setup
 for building and running containerized nodes on the [Concordium](https://concordium.com) blockchain.
 
+## Repository structure
+
+### Docker build files
+
+### Docker Compose spec
+
+### Helm charts
+
+## Development
+
+### Git pre-commit hook
+
+To avoid committing incorrectly formatted YAML (and have it rejected by the CI),
+a git pre-commit hook can verify it before committing:
+
+The hook is implemented using the [`pre-commit`](https://pre-commit.com/) tool which may be installed using `pip`:
+
+```shell
+pip install pre-commit
+```
+
+The `requirements.txt` file specifies a compatible version.
+
+Then just run `pre-commit install` from the project root to install the hook that's defined in `.pre-commit-config.yaml`.
+
+
+---
+
+
 ## Quick start
 
 Start a Concordium node deployment with node name `<node-name>`
@@ -43,7 +72,7 @@ docker-compose --project-name=mainnet up
 ```
 
 where `<tag>` is as described above.
-This will spin up the setup configured in [`docker-compose.yaml`](./docker-compose.yaml)
+This will spin up the setup configured in [`docker-compose.yaml`](docker-compose/docker-compose.yaml)
 (use `-f` to make it read another file).
 
 The variable `NODE_NAME` sets the name to be displayed on the public dashboard.
@@ -111,7 +140,7 @@ A GitHub Actions CI job for building and pushing the images to
 [a public registry](https://hub.docker.com/r/bisgardo/concordium-node) is defined in
 [`./.github/workflows/build-push.yaml`](.github/workflows/build-push.yaml).
 
-A mainnet node setup may for example be run using the Docker Compose script like so:
+A mainnet node setup may for example be run using the Docker Compose spec like so:
 
 ```shell
 export NODE_NAME=my_node
@@ -130,7 +159,7 @@ and may simplify this into
 NODE_NAME=my_node ./run.sh <network>
 ```
 
-For running with [transaction logging](./concordium/node/transaction-logging.md) enabled, use the `+txlog` variant, e.g.:
+For running with [transaction logging](docker/concordium-node/transaction-logging.md) enabled, use the `+txlog` variant, e.g.:
 
 ```shell
 export TRANSACTION_LOGGER_PGPASSWORD=<database-password>
@@ -154,19 +183,3 @@ use your own copy/fork or just take the files that you need.
 By using any files from this repository,
 you accept full responsibility of their effect and availability now and in the future,
 so review carefully and only apply changes explicitly.
-
-## Development
-
-### Git pre-commit hook
-
-To avoid committing incorrectly formatted YAML (and have it rejected by the CI), a git pre-commit hook can verify it before committing:
-
-The hook is implemented using the [`pre-commit`](https://pre-commit.com/) tool which may be installed using `pip`:
-
-```shell
-pip install pre-commit
-```
-
-The `requirements.txt` file specifies a compatible version.
-
-Then just run `pre-commit install` from the project root to install the hook that's defined in `.pre-commit-config.yaml`.

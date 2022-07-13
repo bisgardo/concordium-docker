@@ -27,6 +27,7 @@ jobs:
     - name: Log in to Docker Hub
       run: docker login --username "${{ env.user }}" --password-stdin <<< "${{ secrets.DOCKERHUB_ACCESS_TOKEN }}"
     - name: Build and push Docker images
+      working-directory: ./docker-compose
       run: |
         export NODE_TAG="${{ env.node_tag }}"
         export NODE_IMAGE="${{ env.node_image_repo }}:${{ env.node_image_tag }}"
