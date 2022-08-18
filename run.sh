@@ -15,19 +15,27 @@
 # Environment files are predefined for the public Testnet and Mainnet networks.
 # They reference the newest versions of the images built using a CI workflow in this project (see the readme for details).
 
-set -euo pipefail
+set -eo pipefail
 
-if [ "${#}" -lt 1 ]; then
-	>&2 echo "Error: Network parameter not provided."
+export profiles=("${COMPOSE_PROFILES}")
+
+network="${1}"
+if [ -z "${network}" ]; then
+	>&2 echo "Error: Missing or empty network value (first argument)."
 	exit 1
 fi
-network="${1}"
 
 if [ -z "${NODE_NAME-}" ]; then
-	>&2 echo "Error: NODE_NAME variable is not set or empty."
+	>&2 echo "Error: Missing or empty variable 'NODE_NAME'."
 	exit 2
 fi
 
+for arg in "${@}"; do
+	profile="${arg#+}"
+	if [ "${profile}" != "${arg}" ]; then
+		profiles+=("${profile}")
+	fi
+done
 
 env_file="./${network}.env"
 if ! [ -f "${env_file}" ]; then
@@ -38,6 +46,8 @@ if ! [ -f "${env_file}" ]; then
 	>&2 echo "Error: Environment file '${env_file}' for network '${network}' not found."
 	exit 4
 fi
+
+export COMPOSE_PROFILES=$(IFS=,; echo "${profiles[*]}") # join array 'profiles' by ","
 
 # Invoke 'pull' and then 'up' to force Compose to start from public images rather than building from scratch,
 # as that is the default behavior when the 'build' field is set

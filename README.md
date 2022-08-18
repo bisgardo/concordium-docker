@@ -46,11 +46,11 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from caching
 the cloned source code at the current commit.
 
-The currently active tag (as of 2022-05-23) is `3.0.2-0` for mainnet and `4.0.11-0` for testnet.
+The currently active tag (as of 2022-06-20) is `4.2.1-0` for both mainnet and testnet.
 
 *Optional*
 
-The build args `ghc_version` and `rust_version` override the default values of 8.10.4 and 1.53.0, respectively.
+The build args `ghc_version` and `rust_version` override the default values of 9.0.2 and 1.53.0, respectively.
 Additionally, the build arg `extra_features` (defaults to `instrumentation`) set
 desired feature flags (`collector` is hardcoded so should not be specified).
 Note that when `instrumentation` is set,
@@ -72,8 +72,8 @@ allowing it to be passed as a simple bind mount.
 
 To this end, the following genesis files are located in directory [`genesis`](./genesis):
 
-- `mainnet-0.dat`: Initial genesis data for the mainnet ([source](https://distribution.mainnet.concordium.software/data/genesis.dat)).
-- `testnet-0.dat`: Initial genesis data for the current testnet ([source](https://distribution.testnet.concordium.com/data/genesis.dat)).
+- `mainnet-0.dat`: Initial genesis data for the mainnet (started on 2021-06-09; [source](https://distribution.mainnet.concordium.software/data/genesis.dat)).
+- `testnet-1.dat`: Genesis data for the current testnet (started on 2022-06-13; [source](https://distribution.testnet.concordium.com/data/genesis.dat)).
 
 The directory also holds the now-unused dockerfile for the genesis image. See commit `17dde7d` for the old instructions.
 
@@ -132,12 +132,17 @@ The publicly available official options are:
 
 Defining the variable `CONCORDIUM_NODE_LOG_LEVEL_DEBUG` (with any value) enables debug logging for the node.
 
+The node collector starts up with a default delay of 2 mins to avoid filling the log with query errors until the node is ready.
+This may be overridden with the variable `NODE_COLLECTOR_DELAY_MS` which takes the delay in milliseconds.
+The service restarts automatically if it crashes due to too many unsuccessful connection attempts.
+
 Adding `--project-name=<name>` to `docker-compose up` prepends `<name>` to the names of containers and other persistent resources,
 making it possible to switch between networks without having to delete data and existing containers.
 Note that because ports are fixed, running multiple nodes at the same time is not supported with the current setup.
 
-Adding `--profile=node-dashboard` (or `COMPOSE_PROFILES=node-dashboard`) enables a Node Dashboard
-and an accompanying Envoy gRPC proxy instance to be started up as part of the deployment.
+Enabling profile `node-dashboard` (i.e. adding `--profile=node-dashboard` or setting `COMPOSE_PROFILES=node-dashboard`)
+activates a Node Dashboard instance on port `8099` (and an accompanying Envoy gRPC proxy instance)
+to be started up as part of the deployment.
 
 The command will automatically build the images from scratch if they don't already exist.
 Set the flag `--no-build` to prevent that.
@@ -172,6 +177,40 @@ docker kill --signal=SIGTERM <container>
 Stopping the node during the initial out-of-band catchup is not recommended
 as it might lead to internal data corruption.
 
+### Metrics
+
+The node exposes a few metrics as a [Prometheus](https://prometheus.io/) scrape endpoint on port `9090`.
+If profile `prometheus` is enabled, a Prometheus [instance](https://hub.docker.com/r/prom/prometheus)
+that is configured to scrape itself and the node (see [prometheus.yml](./prometheus.yml) for the configuration)
+is started as well.
+The web UI of that service is exposed to the host on port `9009`.
+
+### Backing up persisted data
+
+Data in a persisted volume may be mounted into a throwaway container and backed up from there,
+for instance by archiving it into a bind mount.
+
+The data compresses well with LZMA (usually uses `.xz` extension).
+The dockerfile `backup.Dockerfile` builds an image that supports that format:
+
+```shell
+docker build -f backup.Dockerfile -t concordium-backup --pull .
+```
+
+As an example, the following command archives the contents of a volume `data` (excluding any `blocks.mdb` file with OOB catchup data)
+into a file `./backup/data.tar.xz` located in a bind mount:
+
+```shell
+docker run --rm --volume=data:/data --volume="${PWD}/backup":/backup --workdir=/ concordium-backup tar -Jcf ./backup/data.tar.xz --exclude=blocks.mdb  ./data
+```
+
+Restoring the backup at `./backup/data.tar.xz` into a fresh (or properly wiped) volume `data`
+is then just a matter of extracting instead of creating:
+
+```shell
+docker run --rm --volume=data:/data --volume="${PWD}"/backup:/backup --workdir=/ concordium-backup tar -xf ./backup/data.tar.xz
+```
+
 ## Usage
 
 Run the following command to get a list of supported arguments:
@@ -184,13 +223,30 @@ docker run --rm concordium-node:<tag> /concordium-node --help | less
 
 The Concordium Node includes the ability to
 [log transactions to an external PostgreSQL database](https://github.com/Concordium/concordium-node/blob/main/docs/transaction-logging.md).
-There are two methods of doing this:
+Due to various shortcomings, this feature is now deprecated in favor of an equivalent
+[independent service](https://github.com/Concordium/concordium-transaction-logger):
+The service is deployed separately, handles errors gracefully,
+and may run against multiple nodes that don't need any particular configuration or state.
+The DB schemas are documented in the links above.
+This project used to support the legacy method, but this was removed in commit `6933166`.
 
-- By the node itself: This method is considered legacy and is [documented separately](./legacy-transaction-logging.md).
-- By an [independent service](https://github.com/Concordium/concordium-transaction-logger):
-  The service is deployed separately, handles errors gracefully, and may run against multiple nodes without any particular configuration.
-  This service is intended to replace the legacy method.
-  The Docker Compose file includes this component under the profile `transaction-logger`.
+The Docker Compose file includes a transaction logger instance under the profile `txlog`.
+The [image](https://hub.docker.com/r/concordium/transaction-logger/tags) is specified with the variable `TRANSACTION_LOGGER_IMAGE`.
+
+Database credentials etc. are configured with the following variables:
+
+- `TXLOG_PGDATABASE` (default: `concordium_txlog`): Name of the database in the PostgreSQL instance created for the purpose.
+- `TXLOG_PGHOST` (default: `172.17.0.1`): DNS or IP address of the host.
+  The default value assumes that the PostgreSQL instance is running natively, i.e. outside of Docker.
+- `TXLOG_PGPORT` (default: `5432`): Port of the PostgreSQL instance.
+- `TXLOG_PGUSER` (default: `postgres`): Username of the PostgreSQL user used to log the transactions.
+- `TXLOG_PGPASSWORD`: Password of the PostgreSQL user.
+
+The variables may be passed to the `docker-compose` command above or persisted in a `.env` file as described below
+(see [`testnet.env`](./testnet.env) and [`mainnet.env`](./mainnet.env);
+note that `TXLOG_PGPASSWORD` still has to be passed explicitly).
+
+See [`postgresql.md`](./postgresql.md) for instructions on how to set up a local database.
 
 ## CI: Public images
 
@@ -217,12 +273,10 @@ and may simplify this into
 NODE_NAME=my_node ./run.sh <network>
 ```
 
-For running with (duplicate) [transaction logging](./legacy-transaction-logging.md) enabled, use the `txlog` variant, e.g.:
+For running with [transaction logging](#transaction-logging) enabled, append `+txlog` and pass the DB password, e.g.:
 
 ```shell
-export TRANSACTION_LOGGER_PGPASSWORD=<database-password>
-export TXLOG_PGPASSWORD=<database-password>
-NODE_NAME=my_node ./run.sh <network>-txlog
+TXLOG_PGPASSWORD=<database-password> NODE_NAME=my_node ./run.sh <network> +txlog
 ```
 
 Working environment files that reference the most recently built public images

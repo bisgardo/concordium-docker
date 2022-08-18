@@ -16,15 +16,46 @@ The chart has been verified to work (with 1 and 2 replicas) in [minikube](https:
   (e.g., different node names).
 - The chart contains no tests.
 
-## Install
+## Prerequisites
+
+Some of the following will have to be set up for the chart to start running successfully.
+It's not important to do any of it before installing the chart
+as Kubernetes will just wait for the relevant resources to be present.
+
+The node depends on a configmap `genesis` holding the genesis data files for all relevant networks.
+Install using the following command (executed from this directory):
 
 ```shell
-helm install concordium-node . --set nodeName=<name>
+kubectl create configmap genesis --from-file=testnet=../../genesis/testnet-1.dat --from-file=mainnet=../../genesis/mainnet-0.dat
+```
+
+Add other networks at will.
+
+If running with a "lesser managed" Kubernetes cluster, the persistent volume might need to be created manually.
+The example PV spec of a 100 GiB volume in `local-persistentvolume.yaml` may be setup using
+
+```shell
+kubectl apply -f ./local-persistentvolume.yaml
+```
+
+In the case of Minikube, there is an addon `storage-provisioner` that enables automatic provisioning; enable using
+
+```shell
+minikube addons enable storage-provisioner
+```
+
+## Install
+
+Install or upgrade the chart as release name `concordium-node` using the command
+
+```shell
+helm upgrade --install concordium-node . --set=node.name=<name> --set=network=<network>
 ```
 
 where `<name>` is the name of the node to be presented on the
 [public dashboard](https://dashboard.mainnet.concordium.software/)
-(set to empty to disable the collector container).
+(set to empty to disable the collector container)
+and `<network>` is `testnet` or `mainnet`.
 
 Also consider overriding the image repositories (using `--set` or a custom values file).
 See [values.yaml](./values.yaml) (e.g. using `helm show values .`)
