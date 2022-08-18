@@ -243,7 +243,7 @@ Database credentials etc. are configured with the following variables:
 - `TXLOG_PGPASSWORD`: Password of the PostgreSQL user.
 
 The variables may be passed to the `docker-compose` command above or persisted in a `.env` file as described below
-(see [`testnet+txlog.env`](./testnet+txlog.env) and [`mainnet+txlog.env`](./mainnet+txlog.env);
+(see [`testnet.env`](./testnet.env) and [`mainnet.env`](./mainnet.env);
 note that `TXLOG_PGPASSWORD` still has to be passed explicitly).
 
 See [`postgresql.md`](./postgresql.md) for instructions on how to set up a local database.
@@ -273,12 +273,10 @@ and may simplify this into
 NODE_NAME=my_node ./run.sh <network>
 ```
 
-For running with [transaction logging](#transaction-logging) enabled, use the `+txlog` variant, e.g.:
+For running with [transaction logging](#transaction-logging) enabled, append `+txlog` and pass the DB password, e.g.:
 
 ```shell
-export TRANSACTION_LOGGER_PGPASSWORD=<database-password>
-export TXLOG_PGPASSWORD=<database-password>
-NODE_NAME=my_node ./run.sh <network>+txlog
+TXLOG_PGPASSWORD=<database-password> NODE_NAME=my_node ./run.sh <network> +txlog
 ```
 
 Working environment files that reference the most recently built public images
