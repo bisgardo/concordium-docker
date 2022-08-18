@@ -230,7 +230,7 @@ and may run against multiple nodes that don't need any particular configuration 
 The DB schemas are documented in the links above.
 This project used to support the legacy method, but this was removed in commit `6933166`.
 
-The Docker Compose file includes a transaction logger instance under the profile `txlog`.
+The Docker Compose file includes a transaction logger service under the profile `txlog`.
 The [image](https://hub.docker.com/r/concordium/transaction-logger/tags) is specified with the variable `TRANSACTION_LOGGER_IMAGE`.
 
 Database credentials etc. are configured with the following variables:
@@ -247,6 +247,25 @@ The variables may be passed to the `docker-compose` command above or persisted i
 note that `TXLOG_PGPASSWORD` still has to be passed explicitly).
 
 See [`postgresql.md`](./postgresql.md) for instructions on how to set up a local database.
+
+## Rosetta
+
+The Docker Compose file supports running an instance of the [Concordium implementation](https://github.com/Concordium/concordium-rosetta)
+of the [Rosetta](https://www.rosetta-api.org/) API under the profile `rosetta`.
+The only configuration accepted by the service is the [image](https://hub.docker.com/r/concordium/rosetta/tags)
+which is specified with the variable `ROSETTA_IMAGE`
+
+The [`network_identifier`](https://github.com/Concordium/concordium-rosetta#identifiers) expected by the instance is
+
+```shell
+{"blockchain": "concordium", "network": "<project name>"}
+```
+
+where `<project name>` is the Compose project name; i.e. the value of `--project-name`
+or the `<network>` parameter of `./run.sh`.
+
+See the [official documentation](https://github.com/Concordium/concordium-rosetta) of `concordium-rosetta`
+for more details about this application.
 
 ## CI: Public images
 
