@@ -137,6 +137,22 @@ services:
     - node
     networks:
     - concordium
+  rosetta:
+    profiles: [rosetta]
+    image: ${ROSETTA_IMAGE}
+    environment:
+    - CONCORDIUM_ROSETTA_GRPC_HOST=node
+    - CONCORDIUM_ROSETTA_GRPC_PORT=10000
+    - CONCORDIUM_ROSETTA_NETWORK=${COMPOSE_PROJECT_NAME} # TODO what if project name is empty?
+    - CONCORDIUM_ROSETTA_PORT=8080
+    ports:
+    - "8080:8080"
+    restart: unless-stopped # service may start before the node is operational
+    stop_signal: SIGKILL
+    depends_on:
+    - node
+    networks:
+    - concordium
 volumes:
   data:
   config:
