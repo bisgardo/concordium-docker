@@ -21,7 +21,7 @@ RUN git \
     .
 
 # Clone and compile 'flatc'.
-FROM debian:${debian_base_image_tag} AS flatbuffers
+FROM debian:${debian_base_image_tag}-slim AS flatbuffers
 RUN apt-get update && \
     apt-get install -y git cmake make g++ && \
     rm -rf /var/lib/apt/lists/*
@@ -77,7 +77,7 @@ RUN mkdir -p /target/bin && \
     cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /target/lib
 
 # Build result image.
-FROM debian:${debian_base_image_tag}
+FROM debian:${debian_base_image_tag}-slim
 # Runtime dependencies:
 # - 'ca-certificates' (SSL certificates for CAs trusted by Mozilla): Needed for Node Collector to push via HTTPS.
 # - 'libpq5' (PostgreSQL driver): Used by Node's transaction logging feature.
