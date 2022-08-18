@@ -132,7 +132,7 @@ The publicly available official options are:
 
 Defining the variable `CONCORDIUM_NODE_LOG_LEVEL_DEBUG` (with any value) enables debug logging for the node.
 
-The node collector starts up with a default delay of 2 mins to avoid filling the log with query errors until the node is ready.
+The node collector starts up with a default delay of 1 min to avoid filling the log with query errors until the node is ready.
 This may be overridden with the variable `NODE_COLLECTOR_DELAY_MS` which takes the delay in milliseconds.
 The service restarts automatically if it crashes due to too many unsuccessful connection attempts.
 
@@ -252,8 +252,9 @@ See [`postgresql.md`](./postgresql.md) for instructions on how to set up a local
 
 The Docker Compose file supports running an instance of the [Concordium implementation](https://github.com/Concordium/concordium-rosetta)
 of the [Rosetta](https://www.rosetta-api.org/) API under the profile `rosetta`.
-The only configuration accepted by the service is the [image](https://hub.docker.com/r/concordium/rosetta/tags)
-which is specified with the variable `ROSETTA_IMAGE`
+The [image](https://hub.docker.com/r/concordium/rosetta/tags) to deploy is specified with the variable `ROSETTA_IMAGE`.
+To avoid initial crash-looping until the node is up,
+the variable `ROSETTA_STARTUP_DELAY_SECS` sets an optional delay (defaults to 1 min) before the service is started.
 
 The [`network_identifier`](https://github.com/Concordium/concordium-rosetta#identifiers) expected by the instance is
 
