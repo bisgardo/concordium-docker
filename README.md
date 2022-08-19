@@ -23,7 +23,7 @@ NODE_NAME=<node-name> ./run.sh mainnet
 ## Build
 
 By default, the builds run in images based on Debian Buster (10).
-Use the build arg `debian_base_image_tag` to use another base.
+Use the build arg `debian_release` to use another Debian release.
 The only supported value other than `buster` is `stretch` (Debian 9).
 
 ### `concordium-node`

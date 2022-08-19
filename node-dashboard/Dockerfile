@@ -4,7 +4,7 @@ ARG tag='main'
 ARG node_js_version='15.8'
 ARG protoc_version='3.15.6'
 ARG grpc_web_version='1.2.1'
-ARG debian_base_image_tag='buster'
+ARG debian_release='buster'
 ARG grpc_web_host='http://localhost:9999'
 
 # Clone sources.
@@ -21,7 +21,7 @@ RUN git \
     .
 
 # Compile protobuf client stub.
-FROM node:${node_js_version}-${debian_base_image_tag} AS grpc_web_client
+FROM node:${node_js_version}-${debian_release} AS grpc_web_client
 # Download dependency tools 'protoc' and 'protoc-gen-grpc-web' ('protoc' plugin).
 # Could build both tools from source (see commit '14d9274a')
 # but this is not what they do in their own dockerfiles.
@@ -45,7 +45,7 @@ RUN mkdir /out && \
         *.proto
 
 # Build the app.
-FROM node:${node_js_version}-${debian_base_image_tag} AS build
+FROM node:${node_js_version}-${debian_release} AS build
 WORKDIR /build
 COPY --from=source /source .
 COPY --from=grpc_web_client /out ./grpc-api-client

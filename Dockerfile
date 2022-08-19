@@ -5,7 +5,7 @@ ARG ghc_version=9.0.2
 ARG rust_version=1.53.0
 ARG flatbuffers_tag=v2.0.6
 ARG extra_features='instrumentation'
-ARG debian_base_image_tag='buster'
+ARG debian_release='buster'
 
 # Clone sources.
 FROM alpine/git:latest AS source
@@ -21,7 +21,7 @@ RUN git \
     .
 
 # Clone and compile 'flatc'.
-FROM debian:${debian_base_image_tag}-slim AS flatbuffers
+FROM debian:${debian_release}-slim AS flatbuffers
 RUN apt-get update && \
     apt-get install -y git cmake make g++ && \
     rm -rf /var/lib/apt/lists/*
@@ -35,7 +35,7 @@ RUN cmake -G "Unix Makefiles" . && \
     make install
 
 # Build 'concordium-node' (and 'node-collector') in temporary image.
-FROM haskell:${ghc_version}-${debian_base_image_tag} AS build
+FROM haskell:${ghc_version}-${debian_release} AS build
 RUN apt-get update && \
     apt-get install -y liblmdb-dev libpq-dev libssl-dev && \
     rm -rf /var/lib/apt/lists/*
@@ -77,7 +77,7 @@ RUN mkdir -p /target/bin && \
     cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /target/lib
 
 # Build result image.
-FROM debian:${debian_base_image_tag}-slim
+FROM debian:${debian_release}-slim
 # Runtime dependencies:
 # - 'ca-certificates' (SSL certificates for CAs trusted by Mozilla): Needed for Node Collector to push via HTTPS.
 # - 'libpq5' (PostgreSQL driver): Used by Node's transaction logging feature.
