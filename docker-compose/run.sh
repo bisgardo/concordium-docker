@@ -29,7 +29,7 @@ if [ -z "${NODE_NAME-}" ]; then
 fi
 
 
-env_file="./env/${network}.env"
+env_file="./vars_${network}.env"
 if ! [ -f "${env_file}" ]; then
 	if [ -e "${env_file}" ]; then
 		>&2 echo "Error: Environment file '${env_file}' for network '${network}' is not a regular file."
