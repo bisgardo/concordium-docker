@@ -47,7 +47,8 @@ if ! [ -f "${env_file}" ]; then
 	exit 4
 fi
 
-export COMPOSE_PROFILES=$(IFS=,; echo "${profiles[*]}") # join array 'profiles' by ","
+export COMPOSE_PROFILES
+COMPOSE_PROFILES="$(IFS=,; echo "${profiles[*]}")" # join array 'profiles' by ","
 
 # Invoke 'pull' and then 'up' to force Compose to start from public images rather than building from scratch,
 # as that is the default behavior when the 'build' field is set
