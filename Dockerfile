@@ -1,5 +1,6 @@
 # Except for usage in FROM, these ARGs need to be redeclared in the contexts that they're used in.
 # Default values defined here will still apply if they're not overridden.
+ARG git_repo_url='https://github.com/Concordium/concordium-node.git'
 ARG tag
 ARG ghc_version=9.0.2
 ARG rust_version=1.53.0
@@ -9,6 +10,7 @@ ARG debian_release='buster'
 
 # Clone sources.
 FROM alpine/git:latest AS source
+ARG git_repo_url
 ARG tag
 WORKDIR /source
 RUN git \
@@ -17,7 +19,7 @@ RUN git \
     --branch="${tag}" \
     --recurse-submodules \
     --depth=1 \
-    https://github.com/Concordium/concordium-node.git \
+    "${git_repo_url}" \
     .
 
 # Clone and compile 'flatc'.
@@ -68,13 +70,13 @@ RUN mkdir -p /target/bin && \
     cp \
         ./concordium-node/target/release/concordium-node \
         ./concordium-node/target/release/node-collector \
-        /target/bin && \
+        /target/bin/ && \
     mkdir -p /target/lib && \
-    cp ./concordium-base/rust-src/target/release/*.so /target/lib && \
-    cp ./concordium-consensus/smart-contracts/lib/*.so /target/lib && \
-    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib && \
-    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib && \
-    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /target/lib
+    cp ./concordium-base/rust-src/target/release/*.so /target/lib/ && \
+    cp ./concordium-consensus/smart-contracts/lib/*.so /target/lib/ && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib/ && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib/ && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /target/lib/
 
 # Build result image.
 FROM debian:${debian_release}-slim
