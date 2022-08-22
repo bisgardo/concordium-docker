@@ -43,14 +43,14 @@ COPY --from=source /source/deps/grpc-api/ ./
 RUN mkdir /out && \
     protoc \
         --js_out=import_style=commonjs:/out/ \
-        --grpc-web_out=import_style=commonjs+dts,mode=grpcwebtext:/out \
+        --grpc-web_out=import_style=commonjs+dts,mode=grpcwebtext:/out/ \
         *.proto
 
 # Build the app.
 FROM node:${node_js_version}-${debian_release} AS build
 WORKDIR /build
-COPY --from=source /source/ ./
-COPY --from=grpc_web_client /out/ ./grpc-api-client/
+COPY --from=source /source .
+COPY --from=grpc_web_client /out ./grpc-api-client
 RUN npm install
 ARG grpc_web_host
 RUN GRPC_WEB_HOST="${grpc_web_host}" npm run build

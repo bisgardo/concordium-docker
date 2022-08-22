@@ -50,7 +50,7 @@ ENV PATH="${PATH}:/root/.cargo/bin"
 
 # Copy source.
 WORKDIR /build
-COPY --from=source /source ./
+COPY --from=source /source .
 
 # Compile consensus (Haskell and some Rust).
 RUN stack build --stack-yaml=./concordium-consensus/stack.yaml
