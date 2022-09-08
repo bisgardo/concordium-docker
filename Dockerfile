@@ -3,8 +3,9 @@
 ARG git_repo_url='https://github.com/Concordium/concordium-node.git'
 ARG tag
 ARG ghc_version=9.0.2
-ARG rust_version=1.53.0
+ARG rust_version=1.62.1
 ARG flatbuffers_tag=v2.0.6
+ARG protobuf_tag=v3.15.8
 ARG extra_features='instrumentation'
 ARG debian_release='buster'
 
@@ -13,14 +14,7 @@ FROM alpine/git:latest AS source
 ARG git_repo_url
 ARG tag
 WORKDIR /source
-RUN git \
-    -c advice.detachedHead=false \
-    clone \
-    --branch="${tag}" \
-    --recurse-submodules \
-    --depth=1 \
-    "${git_repo_url}" \
-    .
+RUN git -c advice.detachedHead=false clone --branch="${tag}" --recurse-submodules --depth=1 "${git_repo_url}" .
 
 # Clone and compile 'flatc'.
 FROM debian:${debian_release}-slim AS flatbuffers
@@ -35,6 +29,17 @@ RUN git -c advice.detachedHead=false clone --branch="${flatbuffers_tag}" https:/
 RUN cmake -G "Unix Makefiles" . && \
     make -j"$(nproc)" && \
     make install
+
+# Clone and compile 'protoc'.
+FROM debian:${debian_release} AS protobuf
+RUN apt-get update && \
+    apt-get install -y git cmake g++ && \
+    rm -rf /var/lib/apt/lists/*
+WORKDIR /build
+ARG protobuf_tag
+RUN git -c advice.detachedHead=false clone --branch="${protobuf_tag}" --recurse-submodules --depth=1 https://github.com/protocolbuffers/protobuf.git .
+# Should be 'cmake . && ...' as of v3.21.
+RUN cmake ./cmake &&  cmake --build . --parallel "$(nproc)"
 
 # Build 'concordium-node' (and 'node-collector') in temporary image.
 FROM haskell:${ghc_version}-${debian_release} AS build
@@ -57,6 +62,10 @@ RUN stack build --stack-yaml=./concordium-consensus/stack.yaml
 
 # Copy flatbuffer compiler that was built in the previous step.
 COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
+# Copy protobuf compiler that was built in the previous step.
+# This is a dependency of 'prost-build' as of v0.11 which no longer bundles/builds this tool
+# (see 'https://github.com/tokio-rs/prost/tree/4459a1e36a63a0e10e418b823957cc80d9fbc744#protoc').
+COPY --from=protobuf /build/protoc /usr/local/bin/protoc
 
 # Compile 'concordium-node' (Rust, depends on consensus).
 # Note that feature 'profiling' implies 'static' (i.e. static linking).
@@ -73,7 +82,7 @@ RUN mkdir -p /target/bin && \
         /target/bin/ && \
     mkdir -p /target/lib && \
     cp ./concordium-base/rust-src/target/release/*.so /target/lib/ && \
-    cp ./concordium-consensus/smart-contracts/lib/*.so /target/lib/ && \
+    cp ./concordium-base/smart-contracts/lib/*.so /target/lib/ && \
     cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib/ && \
     cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib/ && \
     cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /target/lib/
