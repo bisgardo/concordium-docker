@@ -23,8 +23,12 @@ NODE_NAME=<node-name> ./run.sh mainnet
 ## Build
 
 By default, the builds run in images based on Debian Buster (10).
-Use the build arg `debian_release` to use another Debian release.
-The only supported value other than `buster` is `stretch` (Debian 9).
+The build arg `debian_release` may be used to select another Debian release.
+As of 2022-09-08, no other values besides the default one are supported
+due to the project's dependency on the [Haskell toolchain](https://hub.docker.com/_/haskell):
+
+> Note: Currently stable Debian is version 11 bullseye, however it is not yet supported by Haskell tooling.
+> Until that time the default will remain Debian 10 buster. We have dropped support for Debian 9 stretch.
 
 ### `concordium-node`
 
