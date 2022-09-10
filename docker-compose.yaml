@@ -131,7 +131,7 @@ services:
         port=${TXLOG_PGPORT-5432}
         dbname=${TXLOG_PGDATABASE-concordium_txlog}
         user=${TXLOG_PGUSER-postgres}
-        password=${TXLOG_PGPASSWORD-}
+        password=${TXLOG_PGPASSWORD}
     - TRANSACTION_LOGGER_LOG_LEVEL=debug
     depends_on:
     - node
@@ -147,7 +147,7 @@ services:
     environment:
     - CONCORDIUM_ROSETTA_GRPC_HOST=node
     - CONCORDIUM_ROSETTA_GRPC_PORT=10000
-    - CONCORDIUM_ROSETTA_NETWORK=${NETWORK}
+    - CONCORDIUM_ROSETTA_NETWORK=${ROSETTA_NETWORK}
     - CONCORDIUM_ROSETTA_PORT=8080
     ports:
     - "8080:8080"
