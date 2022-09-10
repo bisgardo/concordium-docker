@@ -51,9 +51,9 @@ RUN git -c advice.detachedHead=false clone --branch="${protobuf_tag}" --recurse-
 RUN cmake ./cmake && cmake --build . --parallel "$(nproc)"
 
 # Build 'concordium-node' (and 'node-collector') in temporary image.
-FROM haskell:${ghc_version}-${debian_release} AS build
+FROM haskell:${ghc_version}-slim-${debian_release} AS build
 RUN apt-get update && \
-    apt-get install -y liblmdb-dev libpq-dev libssl-dev && \
+    apt-get install -y liblmdb-dev libpq-dev libssl-dev pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Rust.
