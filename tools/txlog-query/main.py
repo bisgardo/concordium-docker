@@ -22,10 +22,10 @@ if __name__ == '__main__':
     database = os.getenv('PGDATABASE', 'concordium_txlog')
     user = os.getenv('PGUSER', 'postgres')
     password = os.getenv('PGPASSWORD')
-    account_address = address_to_bytes(sys.argv[1])
-
-    print("Address (Base58Check):", account_address.base58check())
-    print("Address (Hex)        :", account_address.hex())
+    # account_address = address_to_bytes(sys.argv[1])
+    #
+    # print("Address (Base58Check):", account_address.base58check())
+    # print("Address (Hex)        :", account_address.hex())
 
     connection = connect(
         host=host,
@@ -35,7 +35,9 @@ if __name__ == '__main__':
         password=password,
     )
 
-    rows = query_by_address_bytes(connection, account_address.bytes)
-    for address, block, timestamp, height, summary_json in rows:
-        assert address.tobytes() == account_address.bytes
+    # TODO Query historical state of smart contract.
+
+    contract_index = 29  # has lot of transactions...
+    rows = query_by_contract(connection, contract_index)
+    for index, block, timestamp, height, summary_json in rows:
         print(summary_json)
