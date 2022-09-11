@@ -136,7 +136,7 @@ The publicly available official options are:
 
 Defining the variable `CONCORDIUM_NODE_LOG_LEVEL_DEBUG` (with any value) enables debug logging for the node.
 
-The node collector starts up with a default delay of 1 min to avoid filling the log with query errors until the node is ready.
+The node collector starts up with a default delay of 30s to avoid filling the log with query errors until the node is ready.
 This may be overridden with the variable `NODE_COLLECTOR_DELAY_MS` which takes the delay in milliseconds.
 The service restarts automatically if it crashes due to too many unsuccessful connection attempts.
 
