@@ -32,15 +32,9 @@ def query_by_address_bytes(connection, address_bytes):
     return query(connection, sql, (address_bytes,))
 
 
-def query_by_contract(connection, index):
+def query_blocks_affecting_contract_by_index(connection, index):
     sql = '''
-        SELECT
-            cti.index,
-            summaries.block,                 -- returns bytes (memoryview); wrap in "encode(..., 'hex')" to convert to string
-            summaries.timestamp,
-            summaries.height,
-            CAST(summaries.summary AS text)  -- convert JSON to string as it would otherwise be parsed as a dict
-            --summaries.summary
+        SELECT summaries.block
         FROM cti LEFT JOIN summaries ON cti.summary = summaries.id
         WHERE cti.index = %s
         ORDER BY cti.id

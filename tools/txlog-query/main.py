@@ -22,7 +22,7 @@ if __name__ == '__main__':
     database = os.getenv('PGDATABASE', 'concordium_txlog')
     user = os.getenv('PGUSER', 'postgres')
     password = os.getenv('PGPASSWORD')
-    # account_address = address_to_bytes(sys.argv[1])
+    contract_index = address_to_bytes(sys.argv[1])  # '29' has lots of transactions...
     #
     # print("Address (Base58Check):", account_address.base58check())
     # print("Address (Hex)        :", account_address.hex())
@@ -35,9 +35,7 @@ if __name__ == '__main__':
         password=password,
     )
 
-    # TODO Query historical state of smart contract.
+    block_hashes = query_blocks_affecting_contract_by_index(connection, contract_index)
+    print(block_hashes)
 
-    contract_index = 29  # has lot of transactions...
-    rows = query_by_contract(connection, contract_index)
-    for index, block, timestamp, height, summary_json in rows:
-        print(summary_json)
+    # TODO Query state/view function of contract for all returned blocks (note that the hashes have type 'memoryview').
