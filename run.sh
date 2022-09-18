@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -x
+
 # Start a Concordium node deployment using Docker Compose with node images pulled from an external registry.
 # 
 # Usage:
@@ -30,10 +32,16 @@ if [ -z "${NODE_NAME-}" ]; then
 	exit 2
 fi
 
+files=("docker-compose.yaml")
+
 for arg in "${@}"; do
 	profile="${arg#+}"
 	if [ "${profile}" != "${arg}" ]; then
 		profiles+=("${profile}")
+		f="docker-compose.${profile}.yaml"
+		if [ -e "${f}" ]; then
+			files+=("${f}")
+		fi
 	fi
 done
 
@@ -50,10 +58,15 @@ fi
 export COMPOSE_PROFILES
 COMPOSE_PROFILES="$(IFS=,; echo "${profiles[*]}")" # join array 'profiles' by ","
 
+args=(--env-file="${env_file}")
+for f in "${files[@]}"; do
+	args+=(-f "${f}")
+done
+
 # Invoke 'pull' and then 'up' to force Compose to start from public images rather than building from scratch,
 # as that is the default behavior when the 'build' field is set
 # (reference: 'https://github.com/compose-spec/compose-spec/blob/master/spec.md#pull_policy').
 # Note that not even setting 'pull_policy' to 'always' will force 'up' to pull;
 # it will still attempt building (which will then fail because of the flag '--no-build').
-docker-compose --env-file="${env_file}" pull
-docker-compose --env-file="${env_file}" up --no-build
+docker-compose "${args[@]}" pull
+docker-compose "${args[@]}" up --no-build
