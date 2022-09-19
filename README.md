@@ -335,21 +335,21 @@ docker-compose --project-name=mainnet up --profile=node-dashboard --no-build
 The convenience script `run.sh` loads the parameters from a `<network>.env` file:
 
 ```shell
-NODE_NAME=my_node ./run.sh <network> [+<profile/override>...]
+NODE_NAME=my_node ./run.sh <network> [+<feature>...]
 ```
 
-where `<profile/override>` is a Compose profile to be enabled and/or an override to be applied.
-An override `<override>` is a file `docker-compose.<override>.yaml` which - if it exists - get merged
+where `<feature>` is a Compose profile to be enabled and/or an override to be applied.
+An override `<feature>` is a file `docker-compose.<feature>.yaml` which - if it exists - get merged
 onto the "base" `docker-compose.yaml` file.
 Multiple profiles/overrides may be enabled by appending a `+` argument for each of them.
 Overrides are applied in the order of the enabling arguments.
 
-This mechanism provides a very flexible way for users to modify and extend the deployment by adding their own override files
-that extend existing profiles, define new ones, etc.
+This mechanism provides a flexible way for users to reconfigure and extend the deployment
+by adding their own override files to modify existing services, extend existing profiles, define new profiles, etc.
 
 Note that `run.sh` doesn't follow Compose's
 [default behavior](https://docs.docker.com/compose/extends/#understanding-multiple-compose-files)
-of applying `docker-compose.override.yaml` automatically - but it could be enabled manually with the option `+override`.
+of applying `docker-compose.override.yaml` automatically (it could still be enabled manually with the option `+override`).
 
 Using `run.sh`, the example above simplifies to
 
