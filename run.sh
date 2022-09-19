@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
-
 # Start a Concordium node deployment using Docker Compose with node images pulled from an external registry.
 # 
 # Usage:

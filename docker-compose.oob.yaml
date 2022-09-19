@@ -23,6 +23,8 @@ services:
       [ "$${age_secs}" -lt "$${OOB_CATCHUP_REFRESH_AGE_SECS-$${now_ts}}" ] ||
         curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /mnt/data/blocks.mdb
   node:
+    environment:
+    - CONCORDIUM_NODE_CONSENSUS_IMPORT_BLOCKS_FROM=/mnt/data/blocks.mdb
     # Defer container start until the init containers have completed successfully.
     # Note that no logs are emitted on stdout until all containers have started.
     # Also, this syntax requires Docker Compose v. 1.29+.
