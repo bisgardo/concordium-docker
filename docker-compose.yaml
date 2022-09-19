@@ -13,12 +13,13 @@ services:
     - -xc
     - |
       # Compute number of seconds since last modification of '/mnt/data/lock.mdb'.
-      # If the file doesn't exist, the "age" defaults to the current Unix time.
+      # If the file doesn't exist, the "age" defaults to time since Unix Epoch.
       last_ts="$$(stat -c %Y /mnt/data/lock.mdb 2>/dev/null || echo 0)"
       now_ts="$$(date +%s)"
       age_secs="$$((now_ts - last_ts))"
 
-      # Fetch blocks unless age is less than configured limit which defaults to "now" (i.e. never).
+      # Fetch blocks unless age is less than configured limit which also defaults to time since Unix Epoch
+      # (i.e. fetch blocks at initial startup and then never after that).
       [ "$${age_secs}" -lt "$${OOB_CATCHUP_REFRESH_AGE_SECS-$${now_ts}}" ] ||
         curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /mnt/data/blocks.mdb
   node:
@@ -33,7 +34,7 @@ services:
     - CONCORDIUM_NODE_RPC_SERVER_ADDR=0.0.0.0
     - CONCORDIUM_NODE_RPC_SERVER_PORT=10000
     - CONCORDIUM_NODE_PROMETHEUS_SERVER=1
-    - CONCORDIUM_NODE_PROMETHEUS_LISTEN_ADDRESSS=0.0.0.0
+    - CONCORDIUM_NODE_PROMETHEUS_LISTEN_ADDRESSS=0.0.0.0 # this is not a typo™
     - CONCORDIUM_NODE_PROMETHEUS_LISTEN_PORT=9090
     - CONCORDIUM_NODE_CONNECTION_DESIRED_NODES=5
     - CONCORDIUM_NODE_CONNECTION_MAX_ALLOWED_NODES=10

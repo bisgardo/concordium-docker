@@ -34,7 +34,7 @@ due to the project's dependency on the [Haskell toolchain](https://hub.docker.co
 
 Dual-purpose Docker image containing the applications `concordium-node` and `node-collector`
 (for reporting state to the public [dashboard](https://dashboard.mainnet.concordium.software/)).
-The two applications are intended to be run in separate containers instantiated from this image.
+The two applications are intended to run in separate containers instantiated from this image.
 
 The image may be build with Docker using the following command or using Docker Compose as described below:
 
@@ -102,14 +102,19 @@ See [`docker-compose.yaml`](./docker-compose.yaml) for a working run configurati
 
 ## Build and/or run using Docker Compose
 
-The setup relies on features that are only available in relatively recent versions of Docker Compose.
-The `requirements.txt` file specifies a compatible version (the latest v1 release at the time of this writing)
+The project includes a full Docker Compose deployment for running a node and collector,
+optionally along with a set of related services (each of which is enabled individually).
+
+The setup is configured in [`docker-compose.yaml`](./docker-compose.yaml)
+and is thoroughly parameterized to work with any Concordium blockchain network.
+
+It relies on features that are available only in relatively recent versions of Compose.
+The `requirements.txt` file pins a compatible version (the latest v1 release at the time of this writing)
 which may be installed (preferably in a [virtualenv](https://docs.python.org/3/library/venv.html))
 using `pip install -r requirements.txt`.
-
 The setup has not yet been tested with [Compose v2](https://docs.docker.com/compose/cli-command/).
 
-To run a node and collector with genesis `mainnet-0` on the mainnet network, adjust and run the following command:
+To build and run a node/collector, and Node Dashboard on the mainnet network, adjust and run the following command:
 
 ```shell
 NODE_NAME=my_node \
@@ -123,12 +128,10 @@ docker-compose --project-name=mainnet up
 ```
 
 where `<tag>` is as described above.
-This will spin up the setup configured in [`docker-compose.yaml`](./docker-compose.yaml)
-(use `-f` to make it read another file).
 
 The variable `NODE_NAME` sets the name to be displayed on the public dashboard.
 
-The variable `DOMAIN` determines what concrete network the node should join.
+The variable `DOMAIN` determines which concrete network to join.
 The publicly available official options are:
 
 - `mainnet.concordium.software`
@@ -178,8 +181,40 @@ An even safer option is to only send it a SIGTERM signal:
 docker kill --signal=SIGTERM <container>
 ```
 
-Stopping the node during the initial out-of-band catchup is not recommended
-as it might lead to internal data corruption.
+Stopping the node during OOB catchup (see below) is not recommended
+as it's been seen to cause internal data corruption in the past.
+
+### Out-of-band (OOB) catchup
+
+When the node needs to catch up a large number of blocks (like when it's starting from scratch),
+it may minimize its network activity by importing blocks "out-of-band" from an archive file.
+
+The Concordium Foundation publishes such a file once per day for Mainnet and Testnet.
+The file contains a serialized blob of all finalized blocks up to the time of its creation.
+
+The deployment includes an "init" service `node_oob_catchup` which is able to download this file
+before the node starts and put it in the location where it will be looking for it.
+
+#### Configuration
+
+Downloading the full +1GB archive on every startup isn't desirable if the node isn't very far behind.
+For this reason, the init service inspects the timestamp of the last modification to the internal DB
+and only downloads the file if that is older that the number of seconds
+specified with the parameter `OOB_CATCHUP_REFRESH_AGE_SECS`.
+
+If unspecified, the data will be downloaded on the initial startup and then never again.
+The provided `<network>.env` files set the value such that the data is refetched
+whenever the node needs to catch up more than 30 days worth of blocks.
+
+Note that this mechanism assumes that the node was caught up the last time it ran.
+If it wasn't, then OOB file may be force refreshed by setting `OOB_CATCHUP_REFRESH_AGE_SECS=0`.
+
+To completely disable OOB catchup, set the refresh age to a value higher than the current Unix time.
+The value `OOB_CATCHUP_REFRESH_AGE_SECS=9999999999` will suffice for next couple of centuries.
+
+Ideally the OOB feature would be controlled by a Compose profile like the other services.
+But annoyingly this isn't possible because the startup dependency of the node
+stays in effect even if the target service is disabled by a profile...
 
 ### Metrics
 
@@ -290,20 +325,28 @@ docker-compose pull # prevent 'up' from building instead of pulling
 docker-compose --project-name=mainnet up --profile=node-dashboard --no-build
 ```
 
-The convenience script `run.sh` loads the parameters from a `<network>.env` file
-and may simplify this into
+The convenience script `run.sh` loads the parameters from a `<network>.env` file:
 
 ```shell
-NODE_NAME=my_node ./run.sh <network>
+NODE_NAME=my_node ./run.sh <network> [+<profile>...]
 ```
 
-For running with [transaction logging](#transaction-logging) enabled, append `+txlog` and pass the DB password, e.g.:
+where `<profile>` is a Compose profile to be enabled.
+Multiple profiles may be enabled by appending a `+` argument for each of them.
+
+Using this script, the example above simplifies to
+
+```shell
+NODE_NAME=my_node ./run.sh mainnet +node-dashboard
+```
+
+To instead enable [transaction logging](#transaction-logging), append `+txlog` and pass the DB password:
 
 ```shell
 TXLOG_PGPASSWORD=<database-password> NODE_NAME=my_node ./run.sh <network> +txlog
 ```
 
-Working environment files that reference the most recently built public images
+Working environment files that reference the most recent public images
 are provided for Testnet and Mainnet.
 
 Feel free to use these images for testing and experimentation,
