@@ -1,0 +1,45 @@
+version: "3.0"
+services:
+  # TODO Add frontend.
+  ccdscan_backend:
+    image: ${CCDSCAN_IMAGE}
+    ports:
+    - "5000:5000"
+    environment:
+    - ImportValidation__Enabled=false
+    - ConcordiumNodeGrpc__AuthenticationToken=rpcadmin
+    - ConcordiumNodeGrpc__Address=http://node:10000
+    - PostgresDatabase__ConnectionString=
+        Host=timescaledb;
+        Port=5432;
+        Database=ccscan;
+        User ID=postgres;
+        Password=password;
+        Include Error Detail=true;
+    - PostgresDatabase__ConnectionStringNodeCache=
+    - Host=timescaledb;
+        Port=5432;
+        Database=ccscan_node_cache;
+        User ID=postgres;
+        Password=password;
+        Include Error Detail=true;
+    - FeatureFlags__ConcordiumNodeImportEnabled=true
+    - FeatureFlags__MigrateDatabasesAtStartup=true
+    - NodeCollectorService__Address=https://dashboard.${DOMAIN}/nodesSummary
+    networks:
+    - concordium
+    - ccdscan
+    depends_on:
+    - timescaledb
+  ccdscan_timescaledb:
+    image: ${CCDSCAN_TIMESCALEDB_IMAGE-timescale/timescaledb:latest-pg13}
+    environment:
+    - POSTGRES_PASSWORD=password
+    networks:
+    - ccdscan
+    volumes:
+    - ccdscan:/home/postgres/pgdata/data
+volumes:
+  ccdscan:
+networks:
+  ccdscan:
