@@ -134,6 +134,7 @@ services:
         user=${TXLOG_PGUSER-postgres}
         password=${TXLOG_PGPASSWORD}
     - TRANSACTION_LOGGER_LOG_LEVEL=debug
+    - TRANSACTION_LOGGER_NUM_PARALLEL_QUERIES=${TXLOG_QUERY_CONCURRENCY-4}
     depends_on:
     - node
     networks:

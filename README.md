@@ -280,6 +280,9 @@ Database credentials etc. are configured with the following variables:
 - `TXLOG_PGPORT` (default: `5432`): Port of the PostgreSQL instance.
 - `TXLOG_PGUSER` (default: `postgres`): Username of the PostgreSQL user used to log the transactions.
 - `TXLOG_PGPASSWORD`: Password of the PostgreSQL user.
+- `TXLOG_QUERY_CONCURRENCY` (default: 4): Number of threads to allocate for querying the node's gRPC interface.
+  This value of this variable only matters when catching up a large number of blocks -
+  setting it to 1 is fine during normal operation.
 
 The variables may be passed to the `docker-compose` command above or persisted in a `.env` file as described below
 (see [`testnet.env`](./testnet.env) and [`mainnet.env`](./mainnet.env);
