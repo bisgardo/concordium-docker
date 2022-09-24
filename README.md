@@ -336,6 +336,10 @@ or the `<network>` parameter of `./run.sh`.
 See the [official documentation](https://github.com/Concordium/concordium-rosetta) of `concordium-rosetta`
 for more details about this application.
 
+## CCDScan
+
+TODO ...
+
 ## CI: Public images
 
 A GitHub Actions CI job for building and pushing the images to
