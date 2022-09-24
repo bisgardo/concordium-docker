@@ -20,6 +20,9 @@ NODE_NAME=<node-name> ./run.sh testnet +oob
 NODE_NAME=<node-name> ./run.sh mainnet +oob
 ```
 
+The `+oob` flag (explained [below](#out-of-band-oob-catchup)) is optional,
+but including it should make the node catch up faster.
+
 ## Build
 
 By default, the builds run in images based on Debian Buster (10).
@@ -192,36 +195,43 @@ it may minimize its network activity by importing blocks "out-of-band" from an a
 The Concordium Foundation publishes such a file once per day for Mainnet and Testnet.
 The file contains a serialized blob of all finalized blocks up to the time of its creation.
 
-The deployment includes an optional "init" service `node_oob_catchup` which is able to download this file
-before the node starts and put it in the location where it will be looking for it.
+The deployment includes an optional init service `node_oob_catchup`,
+which is able to download this file before the node starts
+and put it in the location where it will be looking for it.
 
-As the service (annoyingly) cannot be enabled by a profile, it's implemented as a configuration
-in `docker-compose.oob.yaml`. To enable it, pass all Compose files to be applied explicitly.
-They will then be merged in the provided order according to the
-[documentation](https://docs.docker.com/compose/extends/#multiple-compose-files).
+As the service (annoyingly) cannot be enabled by a Compose profile,
+it's implemented as a configuration override in `docker-compose.oob.yaml`.
+Enable it by making Compose [merge it into](https://docs.docker.com/compose/extends/#multiple-compose-files)
+the main spec.
 
-For example OOB is enabled in example above by replacing the final line in the command with
+For example, OOB is enabled in the example from the previous section
+by replacing the final line in the command with
 
 ```shell
 docker-compose --project-name=mainnet -f docker-compose.yaml -f docker-compose.oob.yaml up
 ```
 
-An easier way to enable it is to use the `run.sh` script, where it's just a matter of appending `+oob`.
+Note that merging happens order, so it matters that the main spec is provided first.
+
+A more convenient way to enable OOB is to use the `run.sh` script, where it's just a matter of appending `+oob`.
 
 #### Configuration
 
-Downloading the full +1GB archive on every startup isn't desirable if the node isn't very far behind.
+Downloading the full +1GB block archive on every startup isn't desirable if the node isn't very far behind.
 For this reason, even though the feature is explicitly enabled,
 the init service inspects the timestamp of the last modification to the internal DB
-and only actually downloads the file if that is older that the number of seconds
+and only actually downloads the file if that time is longer ago that the number of seconds
 specified with the parameter `OOB_CATCHUP_REFRESH_AGE_SECS`.
 
-If unspecified, the data will be downloaded on the initial startup and then never again.
-The provided `<network>.env` files set the value such that the data is refetched
-whenever the node needs to catch up more than 30 days worth of blocks.
+This behavior is chosen to ensure that using `+oob` is "safe" in the sense that it enables OOB when there's a need for it.
+However, as the service inspects *modification* time and not *block time*,
+the mechanism implicitly assumes that the node was caught up the last time it ran.
+In case it wasn't, OOB may be force enabled by setting `OOB_CATCHUP_REFRESH_AGE_SECS=0`.
 
-Note that this mechanism assumes that the node was caught up the last time it ran.
-If it wasn't, then OOB file may be force refreshed by setting `OOB_CATCHUP_REFRESH_AGE_SECS=0`.
+By default, if `OOB_CATCHUP_REFRESH_AGE_SECS` is unspecified,
+the data will be downloaded on the initial startup and then never again.
+The provided `<network>.env` files set the value such that the block archive is refreshed
+whenever the node needs to catch up more than 30 days worth of blocks.
 
 ### Metrics
 
