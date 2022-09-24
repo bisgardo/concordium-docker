@@ -237,7 +237,7 @@ Although the block archive has no use once OOB has completed, there is no mechan
 It's easily done manually though:
 
 ```shell
-docker run --rm --volume=<data>:/data  concordium-backup rm /data/blocks.mdb
+docker run --rm --volume=<data>:/mnt/data busybox rm /mnt/data/blocks.mdb
 ```
 
 where `<data>` is the name of the deployment's data volume.
@@ -259,21 +259,21 @@ The data compresses well with LZMA (usually uses `.xz` extension).
 The dockerfile `backup.Dockerfile` builds an image that supports that format:
 
 ```shell
-docker build -f backup.Dockerfile -t concordium-backup --pull .
+docker build -f ./backup.Dockerfile -t concordium-backup --pull .
 ```
 
-As an example, the following command archives the contents of a volume `data` (excluding any `blocks.mdb` file with OOB catchup data)
+As an example, the following command archives the contents of a volume `data` (excluding any OOB file `blocks.mdb`)
 into a file `./backup/data.tar.xz` located in a bind mount:
 
 ```shell
-docker run --rm --volume=data:/data --volume="${PWD}/backup":/backup --workdir=/ concordium-backup tar -Jcf ./backup/data.tar.xz --exclude=blocks.mdb  ./data
+docker run --rm --volume=data:/mnt/data --volume="${PWD}/backup":/mnt/backup --workdir=/mnt concordium-backup tar -Jcf ./backup/data.tar.xz --exclude=blocks.mdb ./data
 ```
 
 Restoring the backup at `./backup/data.tar.xz` into a fresh (or properly wiped) volume `data`
 is then just a matter of extracting instead of creating:
 
 ```shell
-docker run --rm --volume=data:/data --volume="${PWD}"/backup:/backup --workdir=/ concordium-backup tar -xf ./backup/data.tar.xz
+docker run --rm --volume=data:/mnt/data --volume="${PWD}"/backup:/mnt/backup --workdir=/mnt concordium-backup tar -xf ./backup/data.tar.xz
 ```
 
 ## Usage
