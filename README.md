@@ -11,14 +11,17 @@ using Docker Compose with publicly available images:
 *Testnet*
 
 ```shell
-NODE_NAME=<node-name> ./run.sh testnet
+NODE_NAME=<node-name> ./run.sh testnet +oob
 ```
 
 *Mainnet*
 
 ```shell
-NODE_NAME=<node-name> ./run.sh mainnet
+NODE_NAME=<node-name> ./run.sh mainnet +oob
 ```
+
+The `+oob` flag (explained [below](#out-of-band-oob-catchup)) is optional,
+but including it should make the node catch up faster.
 
 ## Build
 
@@ -105,7 +108,7 @@ See [`docker-compose.yaml`](./docker-compose.yaml) for a working run configurati
 The project includes a full Docker Compose deployment for running a node and collector,
 optionally along with a set of related services (each of which is enabled individually).
 
-The setup is configured in [`docker-compose.yaml`](./docker-compose.yaml)
+The main setup is configured in [`docker-compose.yaml`](./docker-compose.yaml)
 and is thoroughly parameterized to work with any Concordium blockchain network.
 
 It relies on features that are available only in relatively recent versions of Compose.
@@ -192,29 +195,52 @@ it may minimize its network activity by importing blocks "out-of-band" from an a
 The Concordium Foundation publishes such a file once per day for Mainnet and Testnet.
 The file contains a serialized blob of all finalized blocks up to the time of its creation.
 
-The deployment includes an "init" service `node_oob_catchup` which is able to download this file
-before the node starts and put it in the location where it will be looking for it.
+The deployment includes an optional init service `node_oob_catchup`,
+which is able to download this file before the node starts
+and put it in the location where it will be looking for it.
+
+As the service (annoyingly) cannot be enabled by a Compose profile,
+it's implemented as a configuration override in `docker-compose.oob.yaml`.
+Enable it by making Compose [merge it into](https://docs.docker.com/compose/extends/#multiple-compose-files)
+the main spec.
+
+For example, OOB is enabled in the example from the previous section
+by replacing the final line in the command with
+
+```shell
+docker-compose --project-name=mainnet -f docker-compose.yaml -f docker-compose.oob.yaml up
+```
+
+Note that merging happens order, so it matters that the main spec is provided first.
+
+A more convenient way to enable OOB is to use the `run.sh` script, where it's just a matter of appending `+oob`.
 
 #### Configuration
 
-Downloading the full +1GB archive on every startup isn't desirable if the node isn't very far behind.
-For this reason, the init service inspects the timestamp of the last modification to the internal DB
-and only downloads the file if that is older that the number of seconds
+Downloading the full +1GB block archive on every startup isn't desirable if the node isn't very far behind.
+For this reason, even though the feature is explicitly enabled,
+the init service inspects the timestamp of the last modification to the internal DB
+and only actually downloads the file if that time is longer ago that the number of seconds
 specified with the parameter `OOB_CATCHUP_REFRESH_AGE_SECS`.
 
-If unspecified, the data will be downloaded on the initial startup and then never again.
-The provided `<network>.env` files set the value such that the data is refetched
+This behavior is chosen to ensure that using `+oob` is "safe" in the sense that it enables OOB when there's a need for it.
+However, as the service inspects *modification* time and not *block time*,
+the mechanism implicitly assumes that the node was caught up the last time it ran.
+In case it wasn't, OOB may be force enabled by setting `OOB_CATCHUP_REFRESH_AGE_SECS=0`.
+
+By default, if `OOB_CATCHUP_REFRESH_AGE_SECS` is unspecified,
+the data will be downloaded on the initial startup and then never again.
+The provided `<network>.env` files set the value such that the block archive is refreshed
 whenever the node needs to catch up more than 30 days worth of blocks.
 
-Note that this mechanism assumes that the node was caught up the last time it ran.
-If it wasn't, then OOB file may be force refreshed by setting `OOB_CATCHUP_REFRESH_AGE_SECS=0`.
+Although the block archive has no use once OOB has completed, there is no mechanism for deleting it automatically.
+It's easily done manually though:
 
-To completely disable OOB catchup, set the refresh age to a value higher than the current Unix time.
-The value `OOB_CATCHUP_REFRESH_AGE_SECS=9999999999` will suffice for next couple of centuries.
+```shell
+docker run --rm --volume=<data>:/data  concordium-backup rm /data/blocks.mdb
+```
 
-Ideally the OOB feature would be controlled by a Compose profile like the other services.
-But annoyingly this isn't possible because the startup dependency of the node
-stays in effect even if the target service is disabled by a profile...
+where `<data>` is the name of the deployment's data volume.
 
 ### Metrics
 
@@ -331,13 +357,23 @@ docker-compose --project-name=mainnet up --profile=node-dashboard --no-build
 The convenience script `run.sh` loads the parameters from a `<network>.env` file:
 
 ```shell
-NODE_NAME=my_node ./run.sh <network> [+<profile>...]
+NODE_NAME=my_node ./run.sh <network> [+<feature>...]
 ```
 
-where `<profile>` is a Compose profile to be enabled.
-Multiple profiles may be enabled by appending a `+` argument for each of them.
+where `<feature>` is a Compose profile to be enabled and/or an override to be applied.
+An override `<feature>` is a file `docker-compose.<feature>.yaml` which - if it exists - get merged
+onto the "base" `docker-compose.yaml` file.
+Multiple profiles/overrides may be enabled by appending a `+` argument for each of them.
+Overrides are applied in the order of the enabling arguments.
 
-Using this script, the example above simplifies to
+This mechanism provides a flexible way for users to reconfigure and extend the deployment
+by adding their own override files to modify existing services, extend existing profiles, define new profiles, etc.
+
+Note that `run.sh` doesn't follow Compose's
+[default behavior](https://docs.docker.com/compose/extends/#understanding-multiple-compose-files)
+of applying `docker-compose.override.yaml` automatically (it could still be enabled manually with the option `+override`).
+
+Using `run.sh`, the example above simplifies to
 
 ```shell
 NODE_NAME=my_node ./run.sh mainnet +node-dashboard

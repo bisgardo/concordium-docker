@@ -1,0 +1,33 @@
+# Compatible with Docker Compose v1.29+ (due to use of 'depends_on').
+version: '3.9'
+services:
+  node_oob_catchup:
+    image: curlimages/curl:latest
+    pull_policy: always
+    user: root
+    environment:
+    - OOB_CATCHUP_REFRESH_AGE_SECS
+    volumes:
+    - data:/mnt/data
+    entrypoint:
+    - /bin/sh
+    - -xc
+    - |
+      # Compute number of seconds since last modification of '/mnt/data/lock.mdb'.
+      # If the file doesn't exist, the "age" defaults to the current Unix time.
+      last_ts="$$(stat -c %Y /mnt/data/lock.mdb 2>/dev/null || echo 0)"
+      now_ts="$$(date +%s)"
+      age_secs="$$((now_ts - last_ts))"
+
+      # Fetch blocks unless age is less than configured limit which defaults to "now" (i.e. never).
+      [ "$${age_secs}" -lt "$${OOB_CATCHUP_REFRESH_AGE_SECS-$${now_ts}}" ] ||
+        curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /mnt/data/blocks.mdb
+  node:
+    environment:
+    - CONCORDIUM_NODE_CONSENSUS_IMPORT_BLOCKS_FROM=/mnt/data/blocks.mdb
+    # Defer container start until the init containers have completed successfully.
+    # Note that no logs are emitted on stdout until all containers have started.
+    # Also, this syntax requires Docker Compose v. 1.29+.
+    depends_on:
+      node_oob_catchup:
+        condition: service_completed_successfully
