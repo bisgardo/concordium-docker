@@ -233,6 +233,15 @@ the data will be downloaded on the initial startup and then never again.
 The provided `<network>.env` files set the value such that the block archive is refreshed
 whenever the node needs to catch up more than 30 days worth of blocks.
 
+Although the block archive has no use once OOB has completed, there is no mechanism for deleting it automatically.
+It's easily done manually though:
+
+```shell
+docker run --rm --volume=<data>:/data  concordium-backup rm /data/blocks.mdb
+```
+
+where `<data>` is the name of the deployment's data volume.
+
 ### Metrics
 
 The node exposes a few metrics as a [Prometheus](https://prometheus.io/) scrape endpoint on port `9090`.
