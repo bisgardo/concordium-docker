@@ -9,6 +9,7 @@ services:
     - OOB_CATCHUP_REFRESH_AGE_SECS
     volumes:
     - data:/mnt/data
+    - oob:/mnt/oob
     entrypoint:
     - /bin/sh
     - -xc
@@ -21,13 +22,17 @@ services:
 
       # Fetch blocks unless age is less than configured limit which defaults to "now" (i.e. never).
       [ "$${age_secs}" -lt "$${OOB_CATCHUP_REFRESH_AGE_SECS-$${now_ts}}" ] ||
-        curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /mnt/data/blocks.mdb
+        curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /mnt/oob/blocks.mdb
   node:
     environment:
-    - CONCORDIUM_NODE_CONSENSUS_IMPORT_BLOCKS_FROM=/mnt/data/blocks.mdb
+    - CONCORDIUM_NODE_CONSENSUS_IMPORT_BLOCKS_FROM=/mnt/oob/blocks.mdb
     # Defer container start until the init containers have completed successfully.
     # Note that no logs are emitted on stdout until all containers have started.
     # Also, this syntax requires Docker Compose v. 1.29+.
     depends_on:
       node_oob_catchup:
         condition: service_completed_successfully
+    volumes:
+    - oob:/mnt/oob
+volumes:
+  oob:
