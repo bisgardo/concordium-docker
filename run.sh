@@ -67,4 +67,4 @@ done
 # Note that not even setting 'pull_policy' to 'always' will force 'up' to pull;
 # it will still attempt building (which will then fail because of the flag '--no-build').
 docker-compose "${args[@]}" pull
-docker-compose "${args[@]}" up --no-build
+docker-compose "${args[@]}" up #--no-build

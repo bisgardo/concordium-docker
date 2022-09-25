@@ -1,8 +1,22 @@
 version: "3.0"
 services:
   # TODO Add frontend.
+  ccdscan_frontend:
+    image: ${CCDSCAN_FRONTEND_IMAGE}
+    ports:
+    - "5080:80"
+    networks:
+    - ccdscan
+    depends_on:
+    - ccdscan_backend
+    build:
+      context: ./ccdscan
+      dockerfile: ./frontend.Dockerfile
+      args:
+        tag: main
+        network: ${NETWORK}
   ccdscan_backend:
-    image: ${CCDSCAN_IMAGE}
+    image: ${CCDSCAN_BACKEND_IMAGE}
     ports:
     - "5000:5000"
     environment:
@@ -30,7 +44,7 @@ services:
     - concordium
     - ccdscan
     depends_on:
-    - timescaledb
+    - ccdscan_timescaledb
   # TODO Connect to external DB by default and enable this with another override.
   ccdscan_timescaledb:
     image: ${CCDSCAN_TIMESCALEDB_IMAGE-timescale/timescaledb:latest-pg13}
