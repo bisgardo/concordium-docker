@@ -3,12 +3,16 @@ services:
   # TODO Add frontend.
   ccdscan_frontend:
     image: ${CCDSCAN_FRONTEND_IMAGE}
+    environment:
+    - HOST=0.0.0.0
+    - PORT=8000
     ports:
-    - "5080:80"
-    networks:
-    - ccdscan
+    - "5080:8000"
     depends_on:
     - ccdscan_backend
+    stop_signal: SIGKILL
+    networks:
+    - ccdscan
     build:
       context: ./ccdscan
       dockerfile: ./frontend.Dockerfile
@@ -24,14 +28,14 @@ services:
     - ConcordiumNodeGrpc__AuthenticationToken=rpcadmin
     - ConcordiumNodeGrpc__Address=http://node:10000
     - PostgresDatabase__ConnectionString=
-        Host=timescaledb;
+        Host=ccdscan_timescaledb;
         Port=5432;
         Database=ccscan;
         User ID=postgres;
         Password=password;
         Include Error Detail=true;
     - PostgresDatabase__ConnectionStringNodeCache=
-    - Host=timescaledb;
+        Host=ccdscan_timescaledb;
         Port=5432;
         Database=ccscan_node_cache;
         User ID=postgres;
