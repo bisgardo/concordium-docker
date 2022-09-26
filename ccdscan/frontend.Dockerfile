@@ -23,16 +23,14 @@ WORKDIR /build
 COPY --from=source /source/frontend .
 ARG network
 RUN yarn install
-# Overriding default "firebase" preset ('https://v3.nuxtjs.org/guide/deploy/presets/'
-# - doesn't take precedence before 'https://github.com/unjs/nitro/commit/92d711fe936fda0ff877c23d8a0d73ed4ea4adc4' which is part of v0.4.24!).
-# Replace Nuxt config with one that sets preset "node-server" and uses backend from the local deployment.
+# Replace Nuxt config with one that sets preset "node-server" (instead of Firebase) and uses backend from the local deployment.
 COPY ./nuxt.config.ts .
-RUN npx nuxt build
+RUN yarn build
 ENTRYPOINT ["node", "./.output/server/index.mjs"]
 
-## Serve artifacts.
-#FROM node:16-slim
-## Override config with patched version that enables 'mod_rewrite'.
-#WORKDIR /target
-#COPY --from=build /build/.output .
-#ENTRYPOINT ["node", "./server/index.mjs"]
+# Serve artifacts.
+FROM node:16-slim
+# Override config with patched version that enables 'mod_rewrite'.
+WORKDIR /target
+COPY --from=build /build/.output .
+ENTRYPOINT ["node", "./server/index.mjs"]

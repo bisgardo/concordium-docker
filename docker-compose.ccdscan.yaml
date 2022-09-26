@@ -1,6 +1,5 @@
 version: "3.0"
 services:
-  # TODO Add frontend.
   ccdscan_frontend:
     image: ${CCDSCAN_FRONTEND_IMAGE}
     environment:
@@ -34,6 +33,7 @@ services:
         User ID=postgres;
         Password=password;
         Include Error Detail=true;
+    # Would be nice if this could be disabled...
     - PostgresDatabase__ConnectionStringNodeCache=
         Host=ccdscan_timescaledb;
         Port=5432;
