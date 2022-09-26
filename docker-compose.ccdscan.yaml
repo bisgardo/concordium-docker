@@ -49,6 +49,7 @@ services:
     - ccdscan
     depends_on:
     - ccdscan_timescaledb
+    # TODO Add "restart: unless-stopped  # it seems like startup fails sometimes because the DB isn't ready yet"?
   # TODO Connect to external DB by default and enable this with another override.
   ccdscan_timescaledb:
     image: ${CCDSCAN_TIMESCALEDB_IMAGE-timescale/timescaledb:latest-pg13}
