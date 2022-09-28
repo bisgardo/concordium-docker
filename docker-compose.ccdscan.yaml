@@ -58,7 +58,7 @@ services:
     networks:
     - ccdscan
     volumes:
-    - ccdscan:/home/postgres/pgdata/data
+    - ccdscan:/var/lib/postgresql/data
 volumes:
   ccdscan:
 networks:
