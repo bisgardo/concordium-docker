@@ -338,7 +338,11 @@ for more details about this application.
 
 ## CCDScan
 
-TODO ...
+Enabling the override `ccdscan` activates an instance of CCDScan as part of the deployment.
+The backend is exposed on port `5000` and the frontend on port `5080`.
+The frontend is built from a custom dockerfile with a configuration that makes it independent of Firebase.
+The backend is deployed from an image in the [public repository](https://hub.docker.com/r/concordium/ccdscan/)
+or one [built separately](https://github.com/Concordium/concordium-scan/blob/main/backend/Dockerfile).
 
 ## CI: Public images
 
