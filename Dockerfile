@@ -1,7 +1,7 @@
 # Except for usage in FROM, these ARGs need to be redeclared in the contexts that they're used in.
 # Default values defined here will still apply if they're not overridden.
 ARG git_repo_url='https://github.com/Concordium/concordium-node.git'
-ARG tag
+ARG tag=4.4.4-1
 ARG ghc_version=9.0.2
 ARG rust_version=1.62.1
 ARG cmake_tag=v3.16.3
@@ -66,15 +66,17 @@ ENV PATH="${PATH}:/root/.cargo/bin"
 WORKDIR /build
 COPY --from=source /source .
 
+# Copy protobuf compiler that was built in a previous step.
+# This is a dependency of 'prost-build' as of v0.11 which no longer bundles/builds this tool
+# (see 'https://github.com/tokio-rs/prost/tree/4459a1e36a63a0e10e418b823957cc80d9fbc744#protoc')
+# and 'proto-lens-protobuf-types' which is a dependency of 'concordium-consensus'.
+COPY --from=protobuf /build/protoc /usr/local/bin/protoc
+
 # Compile consensus (Haskell and some Rust).
 RUN stack build --stack-yaml=./concordium-consensus/stack.yaml
 
 # Copy FlatBuffers compiler that was built in the previous step.
 COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
-# Copy protobuf compiler that was built in a previous step.
-# This is a dependency of 'prost-build' as of v0.11 which no longer bundles/builds this tool
-# (see 'https://github.com/tokio-rs/prost/tree/4459a1e36a63a0e10e418b823957cc80d9fbc744#protoc').
-COPY --from=protobuf /build/protoc /usr/local/bin/protoc
 
 # Compile 'concordium-node' (Rust, depends on consensus).
 # Note that feature 'profiling' implies 'static' (i.e. static linking).

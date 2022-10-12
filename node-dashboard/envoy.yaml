@@ -1,3 +1,6 @@
+# Standard configuration based on
+# 'https://github.com/grpc/grpc-web/blob/c6ef0a55b6bffd199fc7e3777022af47b7d525be/net/grpc/gateway/examples/echo/envoy.yaml'.
+
 admin:
   access_log_path: /tmp/admin_access.log
   address:
@@ -28,7 +31,7 @@ static_resources:
               - match:
                   prefix: "/"
                 route:
-                  cluster: grpc-server
+                  cluster: concordium-node
                   max_stream_duration:
                     grpc_timeout_header_max: 0s
               cors:
@@ -51,10 +54,16 @@ static_resources:
                 expose_headers: grpc-status, grpc-message
           http_filters:
           - name: envoy.filters.http.grpc_web
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
           - name: envoy.filters.http.cors
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
           - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
   clusters:
-  - name: grpc-server
+  - name: concordium-node
     connect_timeout: 0.25s
     type: logical_dns
     http2_protocol_options: {}
