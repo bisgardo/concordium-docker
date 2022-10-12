@@ -234,13 +234,11 @@ The provided `<network>.env` files set the value such that the block archive is 
 whenever the node needs to catch up more than 30 days worth of blocks.
 
 Although the block archive has no use once OOB has completed, there is no mechanism for deleting it automatically.
-It's easily done manually though:
+It's easily done manually though by just wiping the OOB volume `<oob>`:
 
 ```shell
-docker run --rm --volume=<data>:/mnt/data busybox rm /mnt/data/blocks.mdb
+docker volume rm --force <oob>
 ```
-
-where `<data>` is the name of the deployment's data volume.
 
 ### Metrics
 
@@ -262,11 +260,10 @@ The dockerfile `backup.Dockerfile` builds an image that supports that format:
 docker build -f ./backup.Dockerfile -t concordium-backup --pull .
 ```
 
-As an example, the following command archives the contents of a volume `data` (excluding any OOB file `blocks.mdb`)
-into a file `./backup/data.tar.xz` located in a bind mount:
+As an example, the following command archives the contents of a volume `data` into a file `./backup/data.tar.xz` located in a bind mount:
 
 ```shell
-docker run --rm --volume=data:/mnt/data --volume="${PWD}/backup":/mnt/backup --workdir=/mnt concordium-backup tar -Jcf ./backup/data.tar.xz --exclude=blocks.mdb ./data
+docker run --rm --volume=data:/mnt/data --volume="${PWD}/backup":/mnt/backup --workdir=/mnt concordium-backup tar -Jcf ./backup/data.tar.xz ./data
 ```
 
 Restoring the backup at `./backup/data.tar.xz` into a fresh (or properly wiped) volume `data`
