@@ -69,7 +69,7 @@ services:
     - metrics:/prometheus
   node-dashboard-grpc-proxy:
     profiles: [node-dashboard]
-    image: envoyproxy/envoy:v1.18-latest
+    image: envoyproxy/envoy:v1.23-latest
     pull_policy: always
     entrypoint: /usr/local/bin/envoy --config-path /etc/envoy/envoy.yaml
     depends_on:

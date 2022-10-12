@@ -53,7 +53,7 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from caching
 the cloned source code at the current commit.
 
-The currently active tag (as of 2022-09-08) is `4.3.1-0` for both mainnet and testnet.
+The currently active tag (as of 2022-10-10) is `4.4.4-1` for both mainnet and testnet.
 
 *Optional*
 
@@ -332,6 +332,14 @@ or the `<network>` parameter of `./run.sh`.
 
 See the [official documentation](https://github.com/Concordium/concordium-rosetta) of `concordium-rosetta`
 for more details about this application.
+
+## CCDScan
+
+Enabling the override `ccdscan` activates an instance of CCDScan as part of the deployment.
+The backend is exposed on port `5000` and the frontend on port `5080`.
+The frontend is built from a custom dockerfile with a configuration that makes it independent of Firebase.
+The backend is deployed from an image in the [public repository](https://hub.docker.com/r/concordium/ccdscan/)
+or one [built separately](https://github.com/Concordium/concordium-scan/blob/main/backend/Dockerfile).
 
 ## CI: Public images
 
