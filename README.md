@@ -234,11 +234,13 @@ The provided `<network>.env` files set the value such that the block archive is 
 whenever the node needs to catch up more than 30 days worth of blocks.
 
 Although the block archive has no use once OOB has completed, there is no mechanism for deleting it automatically.
-It's easily done manually though by just wiping the OOB volume `<oob>`:
+It's easily done manually though:
 
 ```shell
-docker volume rm --force <oob>
+docker run --rm --volume=<data>:/mnt/data busybox rm /mnt/data/blocks.mdb
 ```
+
+where `<data>` is the name of the deployment's data volume.
 
 ### Metrics
 
