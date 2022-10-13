@@ -237,10 +237,10 @@ Although the block archive has no use once OOB has completed, there is no mechan
 It's easily done manually though:
 
 ```shell
-docker run --rm --volume=<data>:/mnt/data busybox rm /mnt/data/blocks.mdb
+docker run --rm --volume=<oob-data>:/mnt/data busybox rm /mnt/data/blocks.mdb
 ```
 
-where `<data>` is the name of the deployment's data volume.
+where `<oob-data>` is the name of the deployment's OOB volume.
 
 ### Metrics
 
