@@ -240,6 +240,18 @@ It's easily done manually though by just wiping the OOB volume `<oob>`:
 docker volume rm --force <oob>
 ```
 
+If there are any containers that reference the volume,
+then this will fail with an error like
+
+```shell
+Error response from daemon: remove mainnet_oob: volume is in use - [fe167a4ac77e0b05f233112abd109ff4ce8ffbb987854eb6498f3d5481297789, ce216a90b740866fbde19c0897ca06a323700dbb3499940f034c0bd430dae709]
+```
+
+The reported containers (node and OOB) have to be removed before the volume can be removed.
+This is true even if the containers are stopped.
+Remove the containers using `docker container rm ...` or `docker-compose down`.
+The containers will get recreated automatically the next time the deployment is started.
+
 ### Metrics
 
 The node exposes a few metrics as a [Prometheus](https://prometheus.io/) scrape endpoint on port `9090`.
