@@ -196,7 +196,7 @@ While running in catchup mode, the node will not have any peers.
 
 ### Metrics
 
-The node exposes a few metrics as a [Prometheus](https://prometheus.io/) scrape endpoint on port `9090`.
+The node exposes a few metrics as a [Prometheus](https://prometheus.io) scrape endpoint on port `9090`.
 If profile `prometheus` is enabled, a Prometheus [instance](https://hub.docker.com/r/prom/prometheus)
 that is configured to scrape itself and the node (see [prometheus.yml](./prometheus.yml) for the configuration)
 is started as well.
