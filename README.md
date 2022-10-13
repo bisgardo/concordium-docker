@@ -234,23 +234,13 @@ The provided `<network>.env` files set the value such that the block archive is 
 whenever the node needs to catch up more than 30 days worth of blocks.
 
 Although the block archive has no use once OOB has completed, there is no mechanism for deleting it automatically.
-It's easily done manually though by just wiping the OOB volume `<oob>`:
+It's easily done manually though:
 
 ```shell
-docker volume rm --force <oob>
+docker run --rm --volume=<data>:/mnt/data busybox rm /mnt/data/blocks.mdb
 ```
 
-If there are any containers that reference the volume,
-then this will fail with an error like
-
-```shell
-Error response from daemon: remove mainnet_oob: volume is in use - [fe167a4ac77e0b05f233112abd109ff4ce8ffbb987854eb6498f3d5481297789, ce216a90b740866fbde19c0897ca06a323700dbb3499940f034c0bd430dae709]
-```
-
-The reported containers (node and OOB) have to be removed before the volume can be removed.
-This is true even if the containers are stopped.
-Remove the containers using `docker container rm ...` or `docker-compose down`.
-The containers will get recreated automatically the next time the deployment is started.
+where `<data>` is the name of the deployment's data volume.
 
 ### Metrics
 
