@@ -1,6 +1,10 @@
-# Except for usage in FROM, these ARGs need to be redeclared in the contexts that they're used in.
+# Except when used in FROM instructions, globally declared ARGs must be redeclared in the contexts in which they're used.
 # Default values defined here will still apply if they're not overridden.
+
+# Repository holding the source code for the Node.
 ARG git_repo_url='https://github.com/Concordium/concordium-node.git'
+
+# Tag of node to build. The default value the oldest version of the node that the build file works with and serves mostly as documentation as the user is expected to override the value.
 ARG tag=4.4.4-1
 ARG ghc_version=9.0.2
 ARG rust_version=1.62.1
