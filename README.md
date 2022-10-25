@@ -190,7 +190,7 @@ When the node needs to catch up a large number of blocks (like when it's startin
 it may minimize its network activity by importing blocks "out-of-band" from an archive file.
 
 The Concordium Foundation publishes such files once per day for Mainnet and Testnet.
-The feature for downloading and ingesting these files are enabled by default.
+The feature for downloading and ingesting these files is enabled by default.
 
 While running in catchup mode, the node will not have any peers.
 
