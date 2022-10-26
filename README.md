@@ -197,7 +197,7 @@ While running in catchup mode, the node will not have any peers.
 The OOB feature used to be implemented in a way that required the user
 to download one big archive in advance of starting the node.
 The new mode is supported by recent node versions only.
-Support for the old mode has been removed from this project.
+Support for the old mode was removed from this project in commit bdd0731.
 
 ### Metrics
 
