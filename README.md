@@ -11,17 +11,14 @@ using Docker Compose with publicly available images:
 *Testnet*
 
 ```shell
-NODE_NAME=<node-name> ./run.sh testnet +oob
+NODE_NAME=<node-name> ./run.sh testnet
 ```
 
 *Mainnet*
 
 ```shell
-NODE_NAME=<node-name> ./run.sh mainnet +oob
+NODE_NAME=<node-name> ./run.sh mainnet
 ```
-
-The `+oob` flag (explained [below](#out-of-band-oob-catchup)) is optional,
-but including it should make the node catch up faster.
 
 ## Build
 
@@ -190,61 +187,21 @@ as it's been seen to cause internal data corruption in the past.
 ### Out-of-band (OOB) catchup
 
 When the node needs to catch up a large number of blocks (like when it's starting from scratch),
-it may minimize its network activity by importing blocks "out-of-band" from an archive file.
+it may minimize its network activity by importing blocks "out-of-band".
 
-The Concordium Foundation publishes such a file once per day for Mainnet and Testnet.
-The file contains a serialized blob of all finalized blocks up to the time of its creation.
+The Concordium Foundation publishes archived chunks of blocks once per day for Mainnet and Testnet.
+The feature for downloading and ingesting these archives is enabled by default.
 
-The deployment includes an optional init service `node_oob_catchup`,
-which is able to download this file before the node starts
-and put it in the location where it will be looking for it.
+While running in catchup mode, the node will not have any peers.
 
-As the service (annoyingly) cannot be enabled by a Compose profile,
-it's implemented as a configuration override in `docker-compose.oob.yaml`.
-Enable it by making Compose [merge it into](https://docs.docker.com/compose/extends/#multiple-compose-files)
-the main spec.
-
-For example, OOB is enabled in the example from the previous section
-by replacing the final line in the command with
-
-```shell
-docker-compose --project-name=mainnet -f docker-compose.yaml -f docker-compose.oob.yaml up
-```
-
-Note that merging happens order, so it matters that the main spec is provided first.
-
-A more convenient way to enable OOB is to use the `run.sh` script, where it's just a matter of appending `+oob`.
-
-#### Configuration
-
-Downloading the full +1GB block archive on every startup isn't desirable if the node isn't very far behind.
-For this reason, even though the feature is explicitly enabled,
-the init service inspects the timestamp of the last modification to the internal DB
-and only actually downloads the file if that time is longer ago that the number of seconds
-specified with the parameter `OOB_CATCHUP_REFRESH_AGE_SECS`.
-
-This behavior is chosen to ensure that using `+oob` is "safe" in the sense that it enables OOB when there's a need for it.
-However, as the service inspects *modification* time and not *block time*,
-the mechanism implicitly assumes that the node was caught up the last time it ran.
-In case it wasn't, OOB may be force enabled by setting `OOB_CATCHUP_REFRESH_AGE_SECS=0`.
-
-By default, if `OOB_CATCHUP_REFRESH_AGE_SECS` is unspecified,
-the data will be downloaded on the initial startup and then never again.
-The provided `<network>.env` files set the value such that the block archive is refreshed
-whenever the node needs to catch up more than 30 days worth of blocks.
-
-Although the block archive has no use once OOB has completed, there is no mechanism for deleting it automatically.
-It's easily done manually though:
-
-```shell
-docker run --rm --volume=<oob-data>:/mnt/data busybox rm /mnt/data/blocks.mdb
-```
-
-where `<oob-data>` is the name of the deployment's OOB volume.
+The OOB feature used to be implemented in a way that required the user
+to download one big archive in advance of starting the node.
+The new mode is supported by recent node versions only.
+Support for the old mode has been removed from this project.
 
 ### Metrics
 
-The node exposes a few metrics as a [Prometheus](https://prometheus.io/) scrape endpoint on port `9090`.
+The node exposes a few metrics as a [Prometheus](https://prometheus.io) scrape endpoint on port `9090`.
 If profile `prometheus` is enabled, a Prometheus [instance](https://hub.docker.com/r/prom/prometheus)
 that is configured to scrape itself and the node (see [prometheus.yml](./prometheus.yml) for the configuration)
 is started as well.
