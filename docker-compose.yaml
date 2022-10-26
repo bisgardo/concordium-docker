@@ -35,7 +35,8 @@ services:
     - concordium
     ports:
     - "8888:8888"   # P2P
-    - "10000:10000" # gRPC
+    - "10000:10000" # gRPC APIv1
+    - "11000:11000" # gRPC APIv2
     - "9090:9090"   # Prometheus (metrics)
     volumes:
     - ${GENESIS_DATA_FILE}:/mnt/genesis.dat
