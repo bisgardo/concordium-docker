@@ -187,12 +187,17 @@ as it's been seen to cause internal data corruption in the past.
 ### Out-of-band (OOB) catchup
 
 When the node needs to catch up a large number of blocks (like when it's starting from scratch),
-it may minimize its network activity by importing blocks "out-of-band" from an archive file.
+it may minimize its network activity by importing blocks "out-of-band".
 
-The Concordium Foundation publishes such files once per day for Mainnet and Testnet.
-The feature for downloading and ingesting these files is enabled by default.
+The Concordium Foundation publishes archived chunks of blocks once per day for Mainnet and Testnet.
+The feature for downloading and ingesting these archives is enabled by default.
 
 While running in catchup mode, the node will not have any peers.
+
+The OOB feature used to be implemented in a way that required the user
+to download one big archive in advance of starting the node.
+The new mode is supported by recent node versions only.
+Support for the old mode has been removed from this project.
 
 ### Metrics
 
