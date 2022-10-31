@@ -23,14 +23,18 @@ NODE_NAME=<node-name> ./run.sh mainnet
 ## Build
 
 By default, the builds run in images based on Debian Buster (10).
-Use the build arg `debian_base_image_tag` to use another base.
-The only supported value other than `buster` is `stretch` (Debian 9).
+The build arg `debian_release` may be used to select another Debian release.
+As of 2022-09-08, no other values besides the default one are supported
+due to the project's dependency on the [Haskell toolchain](https://hub.docker.com/_/haskell):
+
+> Note: Currently stable Debian is version 11 bullseye, however it is not yet supported by Haskell tooling.
+> Until that time the default will remain Debian 10 buster. We have dropped support for Debian 9 stretch.
 
 ### `concordium-node`
 
 Dual-purpose Docker image containing the applications `concordium-node` and `node-collector`
 (for reporting state to the public [dashboard](https://dashboard.mainnet.concordium.software/)).
-The two applications are intended to be run in separate containers instantiated from this image.
+The two applications are intended to run in separate containers instantiated from this image.
 
 The image may be build with Docker using the following command or using Docker Compose as described below:
 
@@ -43,14 +47,14 @@ where `<tag>` is the desired commit tag from the
 The tag is also used for the resulting Docker image.
 
 If a branch name is used for `<tag>` (not recommended),
-then the `--no-cache` flag should be set to prevent the Docker daemon from caching
-the cloned source code at the current commit.
+then the `--no-cache` flag should be set to prevent the Docker daemon from using a
+previously cached clone of the source code at an older version of the branch.
 
-The currently active tag (as of 2022-06-20) is `4.2.1-0` for both mainnet and testnet.
+The currently active tag (as of 2022-10-25) is `4.5.0-0` for both mainnet and testnet.
 
 *Optional*
 
-The build args `ghc_version` and `rust_version` override the default values of 9.0.2 and 1.53.0, respectively.
+The build args `ghc_version` and `rust_version` override the default values of 9.0.2 and 1.63.1, respectively.
 Additionally, the build arg `extra_features` (defaults to `instrumentation`) set
 desired feature flags (`collector` is hardcoded so should not be specified).
 Note that when `instrumentation` is set,
@@ -98,14 +102,19 @@ See [`docker-compose.yaml`](./docker-compose.yaml) for a working run configurati
 
 ## Build and/or run using Docker Compose
 
-The setup relies on features that are only available in relatively recent versions of Docker Compose.
-The `requirements.txt` file specifies a compatible version (the latest v1 release at the time of this writing)
+The project includes a full Docker Compose deployment for running a node and collector,
+optionally along with a set of related services (each of which is enabled individually).
+
+The main setup is configured in [`docker-compose.yaml`](./docker-compose.yaml)
+and is thoroughly parameterized to work with any Concordium blockchain network.
+
+It relies on features that are available only in relatively recent versions of Compose.
+The `requirements.txt` file pins a compatible version (the latest v1 release at the time of this writing)
 which may be installed (preferably in a [virtualenv](https://docs.python.org/3/library/venv.html))
 using `pip install -r requirements.txt`.
-
 The setup has not yet been tested with [Compose v2](https://docs.docker.com/compose/cli-command/).
 
-To run a node and collector with genesis `mainnet-0` on the mainnet network, adjust and run the following command:
+To build and run a node/collector, and Node Dashboard on the mainnet network, adjust and run the following command:
 
 ```shell
 NODE_NAME=my_node \
@@ -119,12 +128,10 @@ docker-compose --project-name=mainnet up
 ```
 
 where `<tag>` is as described above.
-This will spin up the setup configured in [`docker-compose.yaml`](./docker-compose.yaml)
-(use `-f` to make it read another file).
 
 The variable `NODE_NAME` sets the name to be displayed on the public dashboard.
 
-The variable `DOMAIN` determines what concrete network the node should join.
+The variable `DOMAIN` determines which concrete network to join.
 The publicly available official options are:
 
 - `mainnet.concordium.software`
@@ -132,7 +139,7 @@ The publicly available official options are:
 
 Defining the variable `CONCORDIUM_NODE_LOG_LEVEL_DEBUG` (with any value) enables debug logging for the node.
 
-The node collector starts up with a default delay of 2 mins to avoid filling the log with query errors until the node is ready.
+The node collector starts up with a default delay of 30s to avoid filling the log with query errors until the node is ready.
 This may be overridden with the variable `NODE_COLLECTOR_DELAY_MS` which takes the delay in milliseconds.
 The service restarts automatically if it crashes due to too many unsuccessful connection attempts.
 
@@ -174,12 +181,27 @@ An even safer option is to only send it a SIGTERM signal:
 docker kill --signal=SIGTERM <container>
 ```
 
-Stopping the node during the initial out-of-band catchup is not recommended
-as it might lead to internal data corruption.
+Stopping the node during OOB catchup (see below) is not recommended
+as it's been seen to cause internal data corruption in the past.
+
+### Out-of-band (OOB) catchup
+
+When the node needs to catch up a large number of blocks (like when it's starting from scratch),
+it may minimize its network activity by importing blocks "out-of-band".
+
+The Concordium Foundation publishes archived chunks of blocks once per day for Mainnet and Testnet.
+The feature for downloading and ingesting these archives is enabled by default.
+
+While running in catchup mode, the node will not have any peers.
+
+The OOB feature used to be implemented in a way that required the user
+to download one big archive in advance of starting the node.
+The new mode is supported by recent node versions only.
+Support for the old mode was removed from this project in commit bdd0731.
 
 ### Metrics
 
-The node exposes a few metrics as a [Prometheus](https://prometheus.io/) scrape endpoint on port `9090`.
+The node exposes a few metrics as a [Prometheus](https://prometheus.io) scrape endpoint on port `9090`.
 If profile `prometheus` is enabled, a Prometheus [instance](https://hub.docker.com/r/prom/prometheus)
 that is configured to scrape itself and the node (see [prometheus.yml](./prometheus.yml) for the configuration)
 is started as well.
@@ -194,21 +216,20 @@ The data compresses well with LZMA (usually uses `.xz` extension).
 The dockerfile `backup.Dockerfile` builds an image that supports that format:
 
 ```shell
-docker build -f backup.Dockerfile -t concordium-backup --pull .
+docker build -f ./backup.Dockerfile -t concordium-backup --pull .
 ```
 
-As an example, the following command archives the contents of a volume `data` (excluding any `blocks.mdb` file with OOB catchup data)
-into a file `./backup/data.tar.xz` located in a bind mount:
+As an example, the following command archives the contents of a volume `data` into a file `./backup/data.tar.xz` located in a bind mount:
 
 ```shell
-docker run --rm --volume=data:/data --volume="${PWD}/backup":/backup --workdir=/ concordium-backup tar -Jcf ./backup/data.tar.xz --exclude=blocks.mdb  ./data
+docker run --rm --volume=data:/mnt/data --volume="${PWD}/backup":/mnt/backup --workdir=/mnt concordium-backup tar -Jcf ./backup/data.tar.xz ./data
 ```
 
 Restoring the backup at `./backup/data.tar.xz` into a fresh (or properly wiped) volume `data`
 is then just a matter of extracting instead of creating:
 
 ```shell
-docker run --rm --volume=data:/data --volume="${PWD}"/backup:/backup --workdir=/ concordium-backup tar -xf ./backup/data.tar.xz
+docker run --rm --volume=data:/mnt/data --volume="${PWD}"/backup:/mnt/backup --workdir=/mnt concordium-backup tar -xf ./backup/data.tar.xz
 ```
 
 ## Usage
@@ -230,7 +251,7 @@ and may run against multiple nodes that don't need any particular configuration 
 The DB schemas are documented in the links above.
 This project used to support the legacy method, but this was removed in commit `6933166`.
 
-The Docker Compose file includes a transaction logger instance under the profile `txlog`.
+The Docker Compose file includes a transaction logger service under the profile `txlog`.
 The [image](https://hub.docker.com/r/concordium/transaction-logger/tags) is specified with the variable `TRANSACTION_LOGGER_IMAGE`.
 
 Database credentials etc. are configured with the following variables:
@@ -241,12 +262,43 @@ Database credentials etc. are configured with the following variables:
 - `TXLOG_PGPORT` (default: `5432`): Port of the PostgreSQL instance.
 - `TXLOG_PGUSER` (default: `postgres`): Username of the PostgreSQL user used to log the transactions.
 - `TXLOG_PGPASSWORD`: Password of the PostgreSQL user.
+- `TXLOG_QUERY_CONCURRENCY` (default: 4): Number of threads to allocate for querying the node's gRPC interface.
+  This value of this variable only matters when catching up a large number of blocks -
+  setting it to 1 is fine during normal operation.
 
 The variables may be passed to the `docker-compose` command above or persisted in a `.env` file as described below
-(see [`testnet+txlog.env`](./testnet+txlog.env) and [`mainnet+txlog.env`](./mainnet+txlog.env);
+(see [`testnet.env`](./testnet.env) and [`mainnet.env`](./mainnet.env);
 note that `TXLOG_PGPASSWORD` still has to be passed explicitly).
 
 See [`postgresql.md`](./postgresql.md) for instructions on how to set up a local database.
+
+## Rosetta
+
+The Docker Compose file supports running an instance of the [Concordium implementation](https://github.com/Concordium/concordium-rosetta)
+of the [Rosetta](https://www.rosetta-api.org/) API under the profile `rosetta`.
+The [image](https://hub.docker.com/r/concordium/rosetta/tags) to deploy is specified with the variable `ROSETTA_IMAGE`.
+To avoid initial crash-looping until the node is up,
+the variable `ROSETTA_STARTUP_DELAY_SECS` sets an optional delay (defaults to 1 min) before the service is started.
+
+The [`network_identifier`](https://github.com/Concordium/concordium-rosetta#identifiers) expected by the instance is
+
+```shell
+{"blockchain": "concordium", "network": "<project name>"}
+```
+
+where `<project name>` is the Compose project name; i.e. the value of `--project-name`
+or the `<network>` parameter of `./run.sh`.
+
+See the [official documentation](https://github.com/Concordium/concordium-rosetta) of `concordium-rosetta`
+for more details about this application.
+
+## CCDScan
+
+Enabling the override `ccdscan` activates an instance of CCDScan as part of the deployment.
+The backend is exposed on port `5000` and the frontend on port `5080`.
+The frontend is built from a custom dockerfile with a configuration that makes it independent of Firebase.
+The backend is deployed from an image in the [public repository](https://hub.docker.com/r/concordium/ccdscan/)
+or one [built separately](https://github.com/Concordium/concordium-scan/blob/main/backend/Dockerfile).
 
 ## CI: Public images
 
@@ -266,22 +318,38 @@ docker-compose pull # prevent 'up' from building instead of pulling
 docker-compose --project-name=mainnet up --profile=node-dashboard --no-build
 ```
 
-The convenience script `run.sh` loads the parameters from a `<network>.env` file
-and may simplify this into
+The convenience script `run.sh` loads the parameters from a `<network>.env` file:
 
 ```shell
-NODE_NAME=my_node ./run.sh <network>
+NODE_NAME=my_node ./run.sh <network> [+<feature>...]
 ```
 
-For running with [transaction logging](#transaction-logging) enabled, use the `+txlog` variant, e.g.:
+where `<feature>` is a Compose profile to be enabled and/or an override to be applied.
+An override `<feature>` is a file `docker-compose.<feature>.yaml` which - if it exists - get merged
+onto the "base" `docker-compose.yaml` file.
+Multiple profiles/overrides may be enabled by appending a `+` argument for each of them.
+Overrides are applied in the order of the enabling arguments.
+
+This mechanism provides a flexible way for users to reconfigure and extend the deployment
+by adding their own override files to modify existing services, extend existing profiles, define new profiles, etc.
+
+Note that `run.sh` doesn't follow Compose's
+[default behavior](https://docs.docker.com/compose/extends/#understanding-multiple-compose-files)
+of applying `docker-compose.override.yaml` automatically (it could still be enabled manually with the option `+override`).
+
+Using `run.sh`, the example above simplifies to
 
 ```shell
-export TRANSACTION_LOGGER_PGPASSWORD=<database-password>
-export TXLOG_PGPASSWORD=<database-password>
-NODE_NAME=my_node ./run.sh <network>+txlog
+NODE_NAME=my_node ./run.sh mainnet +node-dashboard
 ```
 
-Working environment files that reference the most recently built public images
+To instead enable [transaction logging](#transaction-logging), append `+txlog` and pass the DB password:
+
+```shell
+TXLOG_PGPASSWORD=<database-password> NODE_NAME=my_node ./run.sh <network> +txlog
+```
+
+Working environment files that reference the most recent public images
 are provided for Testnet and Mainnet.
 
 Feel free to use these images for testing and experimentation,

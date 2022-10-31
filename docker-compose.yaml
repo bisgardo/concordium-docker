@@ -1,39 +1,21 @@
-version: '3.9'
+# Compatible with Docker Compose v1.28+ (due to use of profiles).
+version: '3.8'
 services:
-  node_oob_catchup:
-    image: curlimages/curl:latest
-    pull_policy: always
-    user: root
-    environment:
-    - OOB_CATCHUP_REFRESH_AGE_SECS
-    volumes:
-    - data:/mnt/data
-    entrypoint:
-    - /bin/sh
-    - -xc
-    - |
-      # Compute number of seconds since last modification of '/mnt/data/lock.mdb'.
-      # If the file doesn't exist, the "age" defaults to the current Unix time.
-      last_ts="$$(stat -c %Y /mnt/data/lock.mdb 2>/dev/null || echo 0)"
-      now_ts="$$(date +%s)"
-      age_secs="$$((now_ts - last_ts))"
-
-      # Fetch blocks unless age is less than configured limit which defaults to "now" (i.e. never).
-      [ "$${age_secs}" -lt "$${OOB_CATCHUP_REFRESH_AGE_SECS-$${now_ts}}" ] ||
-        curl -sSf https://catchup.${DOMAIN}/blocks_to_import.mdb -o /mnt/data/blocks.mdb
   node:
     image: ${NODE_IMAGE}
     entrypoint: /concordium-node
     environment:
     - CONCORDIUM_NODE_DATA_DIR=/mnt/data
     - CONCORDIUM_NODE_CONFIG_DIR=/mnt/config
-    - CONCORDIUM_NODE_CONSENSUS_IMPORT_BLOCKS_FROM=/mnt/data/blocks.mdb
+    - CONCORDIUM_NODE_CONSENSUS_DOWNLOAD_BLOCKS_FROM=https://catchup.${DOMAIN}/blocks.idx
     - CONCORDIUM_NODE_CONSENSUS_GENESIS_DATA_FILE=/mnt/genesis.dat
     - CONCORDIUM_NODE_CONNECTION_BOOTSTRAP_NODES=bootstrap.${DOMAIN}:8888
     - CONCORDIUM_NODE_RPC_SERVER_ADDR=0.0.0.0
     - CONCORDIUM_NODE_RPC_SERVER_PORT=10000
+    - CONCORDIUM_NODE_GRPC2_LISTEN_ADDRESS=0.0.0.0
+    - CONCORDIUM_NODE_GRPC2_LISTEN_PORT=11000
     - CONCORDIUM_NODE_PROMETHEUS_SERVER=1
-    - CONCORDIUM_NODE_PROMETHEUS_LISTEN_ADDRESSS=0.0.0.0
+    - CONCORDIUM_NODE_PROMETHEUS_LISTEN_ADDRESS=0.0.0.0
     - CONCORDIUM_NODE_PROMETHEUS_LISTEN_PORT=9090
     - CONCORDIUM_NODE_CONNECTION_DESIRED_NODES=5
     - CONCORDIUM_NODE_CONNECTION_MAX_ALLOWED_NODES=10
@@ -49,17 +31,12 @@ services:
     # (in 'https://github.com/clap-rs/clap/pull/2664' to be precise),
     # but the node has not yet upgraded past that version.
     - CONCORDIUM_NODE_LOG_LEVEL_DEBUG
-    # Defer container start until the init containers have completed successfully.
-    # Note that no logs are emitted on stdout until all containers have started.
-    # Also, this syntax requires Docker Compose v. 1.29+.
-    depends_on:
-      node_oob_catchup:
-        condition: service_completed_successfully
     networks:
     - concordium
     ports:
     - "8888:8888"   # P2P
-    - "10000:10000" # gRPC
+    - "10000:10000" # gRPC APIv1
+    - "11000:11000" # gRPC APIv2
     - "9090:9090"   # Prometheus (metrics)
     volumes:
     - ${GENESIS_DATA_FILE}:/mnt/genesis.dat
@@ -76,7 +53,7 @@ services:
     - CONCORDIUM_NODE_COLLECTOR_URL=https://dashboard.${DOMAIN}/nodes/post
     - CONCORDIUM_NODE_COLLECTOR_GRPC_HOST=http://node:10000
     - CONCORDIUM_NODE_COLLECTOR_NODE_NAME=${NODE_NAME}
-    - CONCORDIUM_NODE_COLLECTOR_ARTIFICIAL_START_DELAY=${NODE_COLLECTOR_DELAY_MS-120000} # 2m
+    - CONCORDIUM_NODE_COLLECTOR_ARTIFICIAL_START_DELAY=${NODE_COLLECTOR_DELAY_MS-30000} # 30s
     depends_on:
     - node
     networks:
@@ -96,7 +73,7 @@ services:
     - metrics:/prometheus
   node-dashboard-grpc-proxy:
     profiles: [node-dashboard]
-    image: envoyproxy/envoy:v1.18-latest
+    image: envoyproxy/envoy:v1.23-latest
     pull_policy: always
     entrypoint: /usr/local/bin/envoy --config-path /etc/envoy/envoy.yaml
     depends_on:
@@ -125,14 +102,35 @@ services:
     profiles: [txlog]
     image: ${TRANSACTION_LOGGER_IMAGE}
     environment:
-    - TRANSACTION_LOGGER_NODES=http://node:10000
+    - TRANSACTION_LOGGER_NODES=http://node:11000
     - TRANSACTION_LOGGER_DB_STRING=
         host=${TXLOG_PGHOST-172.17.0.1}
         port=${TXLOG_PGPORT-5432}
         dbname=${TXLOG_PGDATABASE-concordium_txlog}
         user=${TXLOG_PGUSER-postgres}
-        password=${TXLOG_PGPASSWORD-}
+        password=${TXLOG_PGPASSWORD}
     - TRANSACTION_LOGGER_LOG_LEVEL=debug
+    - TRANSACTION_LOGGER_NUM_PARALLEL_QUERIES=${TXLOG_QUERY_CONCURRENCY-4}
+    depends_on:
+    - node
+    networks:
+    - concordium
+  rosetta:
+    profiles: [rosetta]
+    image: ${ROSETTA_IMAGE}
+    entrypoint:
+    - /bin/sh
+    - -c
+    - sleep "${ROSETTA_STARTUP_DELAY_SECS-60}" && concordium-rosetta
+    environment:
+    - CONCORDIUM_ROSETTA_GRPC_HOST=node
+    - CONCORDIUM_ROSETTA_GRPC_PORT=10000
+    - CONCORDIUM_ROSETTA_NETWORK=${ROSETTA_NETWORK}
+    - CONCORDIUM_ROSETTA_PORT=8080
+    ports:
+    - "8080:8080"
+    restart: unless-stopped # service may start before the node is operational
+    stop_signal: SIGKILL
     depends_on:
     - node
     networks:

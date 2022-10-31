@@ -4,15 +4,16 @@ import os
 import sys
 
 from query import *
-from representations import *
+from address import *
 
 
 def address_to_bytes(a):
     # Attempt to parse as Base58Check, falling back to hex (with optional prefix).
     try:
-        return bytes_from_base58check(a)
+        return address_from_base58check(a)
     except:
-        return bytes.fromhex(a[a.find('x') + 1:])  # strip any prefix ending with 'x'
+        hex = a[a.find('x') + 1:]  # strip any prefix ending with 'x'
+        return address_from_hex(hex)
 
 
 if __name__ == '__main__':
@@ -21,10 +22,10 @@ if __name__ == '__main__':
     database = os.getenv('PGDATABASE', 'concordium_txlog')
     user = os.getenv('PGUSER', 'postgres')
     password = os.getenv('PGPASSWORD')
-    account_address_bytes = address_to_bytes(sys.argv[1])
+    account_address = address_to_bytes(sys.argv[1])
 
-    print("Address (Base58Check):", base58check_from_bytes(account_address_bytes))
-    print("Address (Hex)        :", account_address_bytes.hex())
+    print("Address (Base58Check):", account_address.base58check())
+    print("Address (Hex)        :", account_address.hex())
 
     connection = connect(
         host=host,
@@ -34,7 +35,7 @@ if __name__ == '__main__':
         password=password,
     )
 
-    rows = query_by_address_bytes(connection, account_address_bytes)
+    rows = query_by_address_bytes(connection, account_address.bytes)
     for address, block, timestamp, height, summary_json in rows:
-        assert address.tobytes() == account_address_bytes
+        assert address.tobytes() == account_address.bytes
         print(summary_json)

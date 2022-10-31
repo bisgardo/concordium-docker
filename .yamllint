@@ -2,7 +2,7 @@ extends: default
 
 ignore: |
   helm-charts/*/templates
-  env/
+  venv/
 
 rules:
   comments:
