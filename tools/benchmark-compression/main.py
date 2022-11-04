@@ -2,7 +2,6 @@
 
 import checksumdir
 import csv
-import hashlib
 import logging
 import os
 import shutil
@@ -18,19 +17,17 @@ def run(out, source_dir, tmp_dir, source_hash, archive_ext):
     try:
         compression_time = compress(source_dir, archive_file)
         archive_size = os.path.getsize(archive_file)
-        archive_hash = ""  # TODO implement
-        logging.debug('Compression time:  ', compression_time, 's')
-        logging.debug('Compressed size:   ', archive_size, 'B')
+        logging.debug('Compression time:  %.2f s', compression_time)
+        logging.debug('Compressed size:   %d B', archive_size)
         decompression_time = decompress(archive_file, tmp_dir)
         target_hash = checksumdir.dirhash(source_dir)
-        logging.debug('Decompression time:', decompression_time, 's')
+        logging.debug('Decompression time: %.2f s', decompression_time)
         out.writerow({
             'start_time': start_time,
             'archive_ext': archive_ext,
             'archive_size': archive_size,
             'compression_time': compression_time,
             'decompression_time': decompression_time,
-            'archive_hash': archive_hash,
             'source_hash': source_hash,
             'target_hash': target_hash,
         })
@@ -65,9 +62,8 @@ logging.basicConfig(level=log_level)
 
 if __name__ == '__main__':
     out = sys.stdout
-    # source_dir = 'data'
     source_hash = checksumdir.dirhash(source_dir, hashfunc='md5')
-    header = ['start_time', 'archive_ext', 'archive_size', 'compression_time', 'decompression_time', 'archive_hash', 'source_hash', 'target_hash']
+    header = ['start_time', 'archive_ext', 'archive_size', 'compression_time', 'decompression_time', 'source_hash', 'target_hash']
     writer = csv.DictWriter(out, delimiter=',', fieldnames=header)
     writer.writeheader()
 
