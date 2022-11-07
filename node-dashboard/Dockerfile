@@ -28,13 +28,15 @@ FROM node:${node_js_version}-${debian_release} AS grpc_web_client
 # Could build both tools from source (see commit '14d9274a' of this repo)
 # but this is not what they do in their own dockerfiles.
 ARG protoc_version
-RUN wget -q \
+RUN wget \
+        -q \
         -O protoc.zip \
         "https://github.com/protocolbuffers/protobuf/releases/download/v${protoc_version}/protoc-${protoc_version}-linux-x86_64.zip" && \
     unzip -qq protoc.zip -d /usr/local/ && \
     rm protoc.zip
 ARG grpc_web_version
-RUN wget -q \
+RUN wget \
+        -q \
         -O /usr/local/bin/protoc-gen-grpc-web \
         "https://github.com/grpc/grpc-web/releases/download/${grpc_web_version}/protoc-gen-grpc-web-${grpc_web_version}-linux-x86_64" && \
     chmod +x /usr/local/bin/protoc-gen-grpc-web

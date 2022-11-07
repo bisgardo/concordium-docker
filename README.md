@@ -3,7 +3,7 @@
 A collection of scripts and configuration files to build and deploy a containerized,
 dynamically linked node for the [Concordium](https://concordium.com) blockchain.
 
-## Quick run
+## Quickstart
 
 Start a Concordium node deployment with node name `<node-name>`
 using Docker Compose with publicly available images:
@@ -18,6 +18,29 @@ NODE_NAME=<node-name> ./run.sh testnet
 
 ```shell
 NODE_NAME=<node-name> ./run.sh mainnet
+```
+
+### Additional Features
+
+The default deployment is minimal; consisting only of a node and collector.
+Instances of additional services and configurations are available as "features" that may be enabled individually.
+
+To enable a given feature, append `+` followed by the name of the feature to the command above.
+
+The following features are available:
+
+- [Node Dashboard](#node-dashboard): `+node-dashboard`
+- [Prometheus](#metrics) (metrics): `+prometheus`
+- [Transaction Logger](#transaction-logging): `+txlog`
+- [Rosetta](#rosetta): `+rosetta`
+- [CCDScan](#ccdscan): `+ccdscan`
+
+*Example*
+
+Run a node with name `<node-name>` and connected instances of Prometheus and Rosetta on network `<network>`:
+
+```shell
+NODE_NAME=<node-name> ./run.sh <network> +prometheus +rosetta
 ```
 
 ## Build
