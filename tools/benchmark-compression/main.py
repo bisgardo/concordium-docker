@@ -68,7 +68,7 @@ logging.basicConfig(level=log_level)
 
 if __name__ == '__main__':
     out = sys.stdout
-    logging.debug('Computing hash of extracted data')
+    logging.debug('Computing hash of original data')
     source_hash = checksumdir.dirhash(source_dir, hashfunc='md5')
     logging.debug('Initializing writer')
     header = ['start_time', 'archive_ext', 'archive_size', 'compression_time', 'decompression_time', 'source_hash', 'target_hash']
