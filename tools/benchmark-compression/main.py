@@ -12,6 +12,7 @@ import time
 
 
 def run(out, source_dir, tmp_base_dir, source_hash, archive_ext):
+    logging.debug('Running "%s" with ext "%s"', source_dir, archive_ext)
     _, tmp_dir = tempfile.mkstemp(dir=tmp_base_dir)
     logging.debug('Using temporary directory "%s"', tmp_dir)
     start_time = time.time()
@@ -66,15 +67,18 @@ log_level = os.getenv('LOG_LEVEL', 'INFO')
 logging.basicConfig(level=log_level)
 
 if __name__ == '__main__':
+    logging.debug('Initializing writer')
     out = sys.stdout
     source_hash = checksumdir.dirhash(source_dir, hashfunc='md5')
     header = ['start_time', 'archive_ext', 'archive_size', 'compression_time', 'decompression_time', 'source_hash', 'target_hash']
     writer = csv.DictWriter(out, delimiter=',', fieldnames=header)
     writer.writeheader()
 
+    logging.debug('Starting measurements')
     run(writer, source_dir, tmp_base_dir, source_hash, 'gz')
     run(writer, source_dir, tmp_base_dir, source_hash, 'gz')
     run(writer, source_dir, tmp_base_dir, source_hash, 'xz')
     run(writer, source_dir, tmp_base_dir, source_hash, 'xz')
     run(writer, source_dir, tmp_base_dir, source_hash, 'bzip2')
     run(writer, source_dir, tmp_base_dir, source_hash, 'bzip2')
+    logging.debug('Done')
