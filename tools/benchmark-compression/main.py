@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import tempfile
 
 import checksumdir
 import csv
@@ -10,7 +11,8 @@ import sys
 import time
 
 
-def run(out, source_dir, tmp_dir, source_hash, archive_ext):
+def run(out, source_dir, tmp_base_dir, source_hash, archive_ext):
+    _, tmp_dir = tempfile.mkstemp(dir=tmp_base_dir)
     start_time = time.time()
     archive_file = f'{source_dir}.tar.{archive_ext}'
     os.makedirs(tmp_dir)
@@ -56,7 +58,7 @@ def run_timed(cmd):
 
 
 source_dir = os.getenv('DATA_DIR')
-tmp_dir = os.getenv('TMP_DIR')
+tmp_base_dir = os.getenv('TMP_DIR', None)
 log_level = os.getenv('LOG_LEVEL', 'INFO')
 logging.basicConfig(level=log_level)
 
@@ -67,9 +69,9 @@ if __name__ == '__main__':
     writer = csv.DictWriter(out, delimiter=',', fieldnames=header)
     writer.writeheader()
 
-    run(writer, source_dir, tmp_dir, source_hash, 'gz')
-    run(writer, source_dir, tmp_dir, source_hash, 'gz')
-    run(writer, source_dir, tmp_dir, source_hash, 'xz')
-    run(writer, source_dir, tmp_dir, source_hash, 'xz')
-    run(writer, source_dir, tmp_dir, source_hash, 'bzip2')
-    run(writer, source_dir, tmp_dir, source_hash, 'bzip2')
+    run(writer, source_dir, tmp_base_dir, source_hash, 'gz')
+    run(writer, source_dir, tmp_base_dir, source_hash, 'gz')
+    run(writer, source_dir, tmp_base_dir, source_hash, 'xz')
+    run(writer, source_dir, tmp_base_dir, source_hash, 'xz')
+    run(writer, source_dir, tmp_base_dir, source_hash, 'bzip2')
+    run(writer, source_dir, tmp_base_dir, source_hash, 'bzip2')
