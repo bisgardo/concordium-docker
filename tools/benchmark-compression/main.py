@@ -12,11 +12,11 @@ import time
 
 
 def run(out, source_dir, tmp_base_dir, source_hash, archive_ext):
+    start_time = time.time()
     logging.debug('Running "%s" with ext "%s"', source_dir, archive_ext)
     tmp_dir = tempfile.mkdtemp(dir=tmp_base_dir)
     logging.debug('Using temporary directory "%s"', tmp_dir)
-    start_time = time.time()
-    archive_file = f'{source_dir}.tar.{archive_ext}'
+    archive_file = os.path.join(tmp_base_dir, f'data.tar.{archive_ext}')
     try:
         logging.debug('Compressing "%s" into "%s"', source_dir, archive_file)
         compression_time = compress(source_dir, archive_file)
