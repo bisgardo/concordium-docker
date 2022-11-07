@@ -67,9 +67,10 @@ log_level = os.getenv('LOG_LEVEL', 'INFO')
 logging.basicConfig(level=log_level)
 
 if __name__ == '__main__':
-    logging.debug('Initializing writer')
     out = sys.stdout
+    logging.debug('Computing hash of extracted data')
     source_hash = checksumdir.dirhash(source_dir, hashfunc='md5')
+    logging.debug('Initializing writer')
     header = ['start_time', 'archive_ext', 'archive_size', 'compression_time', 'decompression_time', 'source_hash', 'target_hash']
     writer = csv.DictWriter(out, delimiter=',', fieldnames=header)
     writer.writeheader()
