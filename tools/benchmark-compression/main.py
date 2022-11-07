@@ -13,11 +13,10 @@ import time
 
 def run(out, source_dir, tmp_base_dir, source_hash, archive_ext):
     logging.debug('Running "%s" with ext "%s"', source_dir, archive_ext)
-    _, tmp_dir = tempfile.mkstemp(dir=tmp_base_dir)
+    tmp_dir = tempfile.mkdtemp(dir=tmp_base_dir)
     logging.debug('Using temporary directory "%s"', tmp_dir)
     start_time = time.time()
     archive_file = f'{source_dir}.tar.{archive_ext}'
-    os.makedirs(tmp_dir)
     try:
         logging.debug('Compressing "%s" into "%s"', source_dir, archive_file)
         compression_time = compress(source_dir, archive_file)
