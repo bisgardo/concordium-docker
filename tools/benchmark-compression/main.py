@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import tempfile
 
 import checksumdir
 import csv
@@ -8,6 +7,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 
 
@@ -63,12 +63,16 @@ def run_timed(cmd):
 source_dir = os.getenv('DATA_DIR')
 tmp_base_dir = os.getenv('TMP_DIR', None)
 log_level = os.getenv('LOG_LEVEL', 'INFO')
+source_hash = os.getenv('SOURCE_HASH', None)
+
 logging.basicConfig(level=log_level)
 
 if __name__ == '__main__':
     out = sys.stdout
-    logging.debug('Computing hash of original data')
-    source_hash = checksumdir.dirhash(source_dir, hashfunc='md5')
+    if source_hash is None:
+        logging.debug('Computing hash of original data')
+        source_hash = checksumdir.dirhash(source_dir, hashfunc='md5')
+        logging.debug('Hash of original data is %s', source_hash)
     logging.debug('Initializing writer')
     header = ['start_time', 'archive_ext', 'archive_size', 'compression_time', 'decompression_time', 'source_hash', 'target_hash']
     writer = csv.DictWriter(out, delimiter=',', fieldnames=header)
