@@ -13,14 +13,17 @@ import time
 
 def run(out, source_dir, tmp_base_dir, source_hash, archive_ext):
     _, tmp_dir = tempfile.mkstemp(dir=tmp_base_dir)
+    logging.debug('Using temporary directory "%s"', tmp_dir)
     start_time = time.time()
     archive_file = f'{source_dir}.tar.{archive_ext}'
     os.makedirs(tmp_dir)
     try:
+        logging.debug('Compressing "%s" into "%s"', source_dir, archive_file)
         compression_time = compress(source_dir, archive_file)
         archive_size = os.path.getsize(archive_file)
         logging.debug('Compression time:  %.2f s', compression_time)
         logging.debug('Compressed size:   %d B', archive_size)
+        logging.debug('Decompressing "%s" into "%s"', archive_file, tmp_dir)
         decompression_time = decompress(archive_file, tmp_dir)
         target_hash = checksumdir.dirhash(source_dir)
         logging.debug('Decompression time: %.2f s', decompression_time)
