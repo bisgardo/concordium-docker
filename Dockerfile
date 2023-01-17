@@ -4,14 +4,15 @@
 # Repository holding the source code for the Node.
 ARG git_repo_url='https://github.com/Concordium/concordium-node.git'
 
-# Tag of node to build. The default value the oldest version of the node that the build file works with and serves mostly as documentation as the user is expected to override the value.
-ARG tag=4.4.4-1
-ARG ghc_version=9.0.2
+# Tag of node to build. The default value the oldest version of the node that the build file has been verified to work with.
+# It's intended to serve only as documentation as the user is expected to override the value.
+ARG tag=5.1.3-1
+ARG ghc_version=9.2.5
 ARG rust_version=1.62.1
 ARG cmake_tag=v3.16.3
-ARG flatbuffers_tag=v2.0.8
+ARG flatbuffers_tag=v22.12.6
 ARG protobuf_tag=v3.15.8
-ARG extra_features='instrumentation'
+ARG extra_features=''
 ARG debian_release='buster'
 
 # Clone sources.
