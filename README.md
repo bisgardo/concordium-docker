@@ -220,7 +220,7 @@ While running in catchup mode, the node will not have any peers.
 The OOB feature used to be implemented in a way that required the user
 to download one big archive in advance of starting the node.
 The new mode is supported by recent node versions only.
-Support for the old mode was removed from this project in commit bdd0731.
+Support for the old mode was removed from this project in commit `bdd0731`.
 
 ### Metrics
 
@@ -265,10 +265,10 @@ docker run --rm concordium-node:<tag> /concordium-node --help | less
 
 ## Transaction logging
 
-The Concordium Node includes the ability to
-[log transactions to an external PostgreSQL database](https://github.com/Concordium/concordium-node/blob/main/docs/transaction-logging.md).
-Due to various shortcomings, this feature is now deprecated in favor of an equivalent
-[independent service](https://github.com/Concordium/concordium-transaction-logger):
+The Concordium Node [used to](https://github.com/Concordium/concordium-node/blob/1037c4efe3eedc208e531ae39860c245cbbf9f0f/docs/transaction-logging.md)
+include the ability to log transactions to an external PostgreSQL database.
+Due to various shortcomings, this feature has been removed in favor of an equivalent
+[independent service](https://github.com/Concordium/concordium-transaction-logger).
 The service is deployed separately, handles errors gracefully,
 and may run against multiple nodes that don't need any particular configuration or state.
 The DB schemas are documented in the links above.
