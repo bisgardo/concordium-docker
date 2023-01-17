@@ -265,14 +265,12 @@ docker run --rm concordium-node:<tag> /concordium-node --help | less
 
 ## Transaction logging
 
-The Concordium Node [used to](https://github.com/Concordium/concordium-node/blob/1037c4efe3eedc208e531ae39860c245cbbf9f0f/docs/transaction-logging.md)
-include the ability to log transactions to an external PostgreSQL database.
-Due to various shortcomings, this feature has been removed in favor of an equivalent
-[independent service](https://github.com/Concordium/concordium-transaction-logger).
-The service is deployed separately, handles errors gracefully,
+The Concordium Node used to include the ability to log transactions to an external PostgreSQL database.
+Due to various shortcomings, this feature has been removed in favor of an equivalent service
+[`concordium-transaction-logger`](https://github.com/Concordium/concordium-transaction-logger).
+This service is deployed separately, handles errors gracefully,
 and may run against multiple nodes that don't need any particular configuration or state.
-The DB schemas are documented in the links above.
-This project used to support the legacy method, but this was removed in commit `6933166`.
+The DB schemas are documented in the readme of the logger service.
 
 The Docker Compose file includes a transaction logger service under the profile `txlog`.
 The [image](https://hub.docker.com/r/concordium/transaction-logger/tags) is specified with the variable `TRANSACTION_LOGGER_IMAGE`.
