@@ -226,9 +226,12 @@ Support for the old mode was removed from this project in commit `bdd0731`.
 
 The node exposes a few metrics as a [Prometheus](https://prometheus.io) scrape endpoint on port `9090`.
 If profile `prometheus` is enabled, a Prometheus [instance](https://hub.docker.com/r/prom/prometheus)
-that is configured to scrape itself and the node (see [prometheus.yml](./prometheus.yml) for the configuration)
-is started as well.
+that is configured to scrape itself and the node is started as well.
+See [prometheus.yml](./metrics/prometheus.yml) for the configuration.
 The web UI of that service is exposed to the host on port `9009`.
+
+The Prometheus server may also serve as a Grafana data source for powering advanced dashboards.
+See this project's [metrics documentation](./metrics/README.md) for details.
 
 ### Backing up persisted data
 
