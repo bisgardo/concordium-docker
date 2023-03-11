@@ -69,7 +69,7 @@ services:
     ports:
     - "9009:9090" # web UI
     volumes:
-    - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    - ./metrics/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     - metrics:/prometheus
   node-dashboard-grpc-proxy:
     profiles: [node-dashboard]
