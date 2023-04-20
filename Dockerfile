@@ -107,11 +107,10 @@ RUN mkdir -p /target/bin && \
 FROM debian:${debian_release}-slim
 # Runtime dependencies:
 # - 'ca-certificates' (SSL certificates for CAs trusted by Mozilla): Needed for Node Collector to push via HTTPS.
-# - 'libpq5' (PostgreSQL driver): Used by Node's transaction logging feature.
 # - 'liblmdb0'(LMDB implementation): Used to persist the Node's state.
 # - 'libnuma1' (Non-Uniform Memory Architecture management): Low-level dependency.
 RUN apt-get update && \
-    apt-get install -y ca-certificates libpq5 liblmdb0 libnuma1 && \
+    apt-get install -y ca-certificates liblmdb0 libnuma1 && \
     rm -rf /var/lib/apt/lists/*
 
 # P2P listen port ('concordium-node').
@@ -120,6 +119,8 @@ EXPOSE 8888
 EXPOSE 9090
 # GRPC port ('concordium-node').
 EXPOSE 10000
+# GRPC APIv2 port.
+EXPOSE 11000
 
 COPY --from=build /target/bin/concordium-node /concordium-node
 COPY --from=build /target/bin/node-collector /node-collector

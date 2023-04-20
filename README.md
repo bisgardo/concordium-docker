@@ -78,8 +78,7 @@ The currently active tag (as of 2022-03-22) is `5.2.4-0` for both mainnet and te
 *Optional*
 
 The build args `ghc_version` and `rust_version` override the default values of 9.0.2 and 1.63.1, respectively.
-Additionally, the build arg `extra_features` (defaults to `instrumentation`) set
-desired feature flags (`collector` is hardcoded so should not be specified).
+Additionally, the build arg `extra_features` set desired feature flags (`collector` is hardcoded so should not be specified).
 Note that when `instrumentation` is set,
 `concordium-node` must be started with one of the arguments (CLI flag or environment variable; see the docs)
 `prometheus-server` or `prometheus-push-gateway` set.
