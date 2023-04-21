@@ -73,15 +73,12 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from using a
 previously cached clone of the source code at an older version of the branch.
 
-The currently active tag (as of 2022-03-22) is `5.2.4-0` for both mainnet and testnet.
+The currently active tag (as of 2022-04-20) is `5.2.4-0` for mainnet and `5.3.2-1` for testnet.
 
 *Optional*
 
-The build args `ghc_version` and `rust_version` override the default values of 9.0.2 and 1.63.1, respectively.
-Additionally, the build arg `extra_features` set desired feature flags (`collector` is hardcoded so should not be specified).
-Note that when `instrumentation` is set,
-`concordium-node` must be started with one of the arguments (CLI flag or environment variable; see the docs)
-`prometheus-server` or `prometheus-push-gateway` set.
+The build args `ghc_version` and `rust_version` override the default values of 9.2.7 and 1.68.2, respectively.
+Additionally, the build arg `node_features` may be used to provide feature flags to the build command.
 The feature `profiling` should not be set for reasons explained in the dockerfile.
 
 The full set of supported feature flags may be found in

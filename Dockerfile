@@ -6,9 +6,9 @@ ARG git_repo_url='https://github.com/Concordium/concordium-node.git'
 
 # Tag of node to build. The default value the oldest version of the node that the build file has been verified to work with.
 # It's intended to serve only as documentation as the user is expected to override the value.
-ARG tag=5.1.3-1
-ARG ghc_version=9.2.5
-ARG rust_version=1.62.1
+ARG tag=5.3.2-1
+ARG ghc_version=9.2.7
+ARG rust_version=1.68.2
 ARG cmake_tag=v3.16.3
 ARG flatbuffers_tag=v22.12.6
 ARG protobuf_tag=v3.15.8
@@ -86,15 +86,19 @@ COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
 # Compile 'concordium-node' (Rust, depends on consensus).
 # Note that feature 'profiling' implies 'static' (i.e. static linking).
 # As the build prodecure expects dynamic linking, that feature must not be used.
-ARG extra_features
-RUN cargo build --manifest-path=./concordium-node/Cargo.toml --release --features="collector,${extra_features}"
+ARG node_features
+RUN cargo build --manifest-path=./concordium-node/Cargo.toml --release --features="${node_features}"
+
+# Compile 'collector' (Rust).
+# TODO Build separately.
+RUN cargo build --manifest-path=./collector/Cargo.toml --release
 
 # Copy artifacts to '/target'.
 ARG ghc_version
 RUN mkdir -p /target/bin && \
     cp \
         ./concordium-node/target/release/concordium-node \
-        ./concordium-node/target/release/node-collector \
+        ./collector/target/release/node-collector \
         /target/bin/ && \
     mkdir -p /target/lib && \
     cp ./concordium-base/rust-src/target/release/*.so /target/lib/ && \
