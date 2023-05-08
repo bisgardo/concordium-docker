@@ -73,7 +73,7 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from using a
 previously cached clone of the source code at an older version of the branch.
 
-The currently active tag (as of 2022-04-20) is `5.2.4-0` for mainnet and `5.3.2-1` for testnet.
+The currently active tag (as of 2022-05-08) is `5.3.2-1` for both mainnet and testnet.
 
 *Optional*
 
@@ -162,7 +162,7 @@ The node collector starts up with a default delay of 30s to avoid filling the lo
 This may be overridden with the variable `NODE_COLLECTOR_DELAY_MS` which takes the delay in milliseconds.
 The service restarts automatically if it crashes due to too many unsuccessful connection attempts.
 
-By default the node collector uses gRPC APIv2 (i.e. port 11000), but may be overridden using the variable `NODE_COLLECTOR_PORT`.
+By default the node collector uses gRPC APIv2 (i.e. port 11000). To support running older images, this value may be overridden using the variable `NODE_COLLECTOR_PORT`.
 
 Adding `--project-name=<name>` to `docker-compose up` prepends `<name>` to the names of containers and other persistent resources,
 making it possible to switch between networks without having to delete data and existing containers.
