@@ -3,37 +3,33 @@ name: Build and push
 on: # yamllint disable-line rule:truthy
   workflow_dispatch: # manual trigger
     inputs:
-      build_version:
-        description: 'Build version'
-        required: true
       node_tag:
         description: 'Node tag'
         required: true
-      genesis_version:
-        description: 'Genesis version'
+      node_image_tag:
+        description: 'Node image tag'
         required: true
-        default: 'mainnet-1'
 
 env:
   user: bisgardo
   node_image_repo: 'bisgardo/concordium-node'
-  genesis_image_repo: 'bisgardo/concordium-node-genesis'
+  node_dashboard_image_repo: 'bisgardo/concordium-node-dashboard'
   node_tag: '${{ github.event.inputs.node_tag }}'
-  genesis_version: '${{ github.event.inputs.genesis_version }}'
-  build_version: '${{ github.event.inputs.build_version }}'
+  node_image_tag: '${{ github.event.inputs.node_image_tag }}'
+  node_dashboard_image_tag: 'node-${{ github.event.inputs.node_image_tag }}'
 
 jobs:
   build-push:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Log in to Docker Hub
       run: docker login --username "${{ env.user }}" --password-stdin <<< "${{ secrets.DOCKERHUB_ACCESS_TOKEN }}"
-    - name: Build and push node and genesis images
+    - name: Build and push Docker images
       run: |
         export NODE_TAG="${{ env.node_tag }}"
-        export GENESIS_VERSION="${{ env.genesis_version }}"
-        export NODE_IMAGE="${{ env.node_image_repo }}:${{ env.node_tag }}_${{ env.build_version }}"
-        export GENESIS_IMAGE="${{ env.genesis_image_repo }}:${{ env.genesis_version }}_${{ env.build_version }}"
+        export NODE_IMAGE="${{ env.node_image_repo }}:${{ env.node_image_tag }}"
+        export NODE_DASHBOARD_IMAGE=${{ env.node_dashboard_image_repo }}:${{ env.node_dashboard_image_tag }}
+        export COMPOSE_PROFILES=node-dashboard
         NODE_NAME= docker-compose build && docker-compose push

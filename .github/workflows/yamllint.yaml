@@ -9,8 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Install 'yamllint'
-      run: pip install --user yamllint==1.26.1
+      run: pip install --user yamllint==1.26.3
     - name: Run 'yamllint'
       run: yamllint --strict --format=github .

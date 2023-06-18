@@ -1,50 +1,136 @@
-version: '3'
+# Compatible with Docker Compose v1.28+ (due to use of profiles).
+version: '3.8'
 services:
-  genesis:
-    container_name: node-init-genesis
-    image: ${GENESIS_IMAGE}
-    environment:
-    - DATA_DIR=/data
-    network_mode: none
-    volumes:
-    - data:/data
-    build:
-      context: genesis
-      args:
-        genesis_file: ${GENESIS_VERSION}.dat
   node:
-    container_name: node
     image: ${NODE_IMAGE}
     entrypoint: /concordium-node
     environment:
-    - CONCORDIUM_NODE_DATA_DIR=/data
-    - CONCORDIUM_NODE_CONFIG_DIR=/config
-    - CONCORDIUM_NODE_CONNECTION_BOOTSTRAP_NODES=bootstrap.mainnet.concordium.software:8888
+    - CONCORDIUM_NODE_DATA_DIR=/mnt/data
+    - CONCORDIUM_NODE_CONFIG_DIR=/mnt/config
+    - CONCORDIUM_NODE_CONSENSUS_DOWNLOAD_BLOCKS_FROM=https://catchup.${DOMAIN}/blocks.idx
+    - CONCORDIUM_NODE_CONSENSUS_GENESIS_DATA_FILE=/mnt/genesis.dat
+    - CONCORDIUM_NODE_CONNECTION_BOOTSTRAP_NODES=bootstrap.${DOMAIN}:8888
     - CONCORDIUM_NODE_RPC_SERVER_ADDR=0.0.0.0
+    - CONCORDIUM_NODE_RPC_SERVER_PORT=10000
+    - CONCORDIUM_NODE_GRPC2_LISTEN_ADDRESS=0.0.0.0
+    - CONCORDIUM_NODE_GRPC2_LISTEN_PORT=11000
     - CONCORDIUM_NODE_PROMETHEUS_SERVER=1
-    - CONCORDIUM_NODE_PROMETHEUS_LISTEN_ADDRESSS=0.0.0.0
-    depends_on:
-    - genesis
+    - CONCORDIUM_NODE_PROMETHEUS_LISTEN_ADDRESS=0.0.0.0
+    - CONCORDIUM_NODE_PROMETHEUS_LISTEN_PORT=9090
+    - CONCORDIUM_NODE_CONNECTION_DESIRED_NODES=5
+    - CONCORDIUM_NODE_CONNECTION_MAX_ALLOWED_NODES=10
+    - CONCORDIUM_NODE_CONNECTION_HARD_CONNECTION_LIMIT=20
+    - CONCORDIUM_NODE_CONNECTION_THREAD_POOL_SIZE=2
+    - CONCORDIUM_NODE_CONNECTION_BOOTSTRAPPING_INTERVAL=1800
+    - CONCORDIUM_NODE_RUNTIME_HASKELL_RTS_FLAGS=-N2,-I0
+    # We currently cannot define a shorthand variable for 'CONCORDIUM_NODE_LOG_LEVEL'
+    # because the application treats this as enabled if it's defined with *any* value (including empty).
+    # The only way that Docker Compose supports defining the variable on some cases and not others
+    # is to pass it directly like this.
+    # The node parses the variable through the library 'clap' which improved this behavior in v3.0.0
+    # (in 'https://github.com/clap-rs/clap/pull/2664' to be precise),
+    # but the node has not yet upgraded past that version.
+    - CONCORDIUM_NODE_LOG_LEVEL_DEBUG
     networks:
     - concordium
     ports:
-    - 8888:8888
-    - 10000:10000
+    - "8888:8888"   # P2P
+    - "10000:10000" # gRPC APIv1
+    - "11000:11000" # gRPC APIv2
+    - "9090:9090"   # Prometheus (metrics)
     volumes:
-    - data:/data
-    - config:/config
+    - ${GENESIS_DATA_FILE}:/mnt/genesis.dat
+    - data:/mnt/data
+    - config:/mnt/config
     build:
       context: .
       args:
         tag: ${NODE_TAG}
   node-collector:
-    container_name: node-collector
     image: ${NODE_IMAGE}
     entrypoint: /node-collector
     environment:
-    - CONCORDIUM_NODE_COLLECTOR_URL=http://dashboard.mainnet.concordium.software/nodes/post
-    - CONCORDIUM_NODE_COLLECTOR_GRPC_HOST=http://node:10000
+    - CONCORDIUM_NODE_COLLECTOR_URL=https://dashboard.${DOMAIN}/nodes/post
+    - CONCORDIUM_NODE_COLLECTOR_GRPC_HOST=http://node:${NODE_COLLECTOR_PORT-11000}
     - CONCORDIUM_NODE_COLLECTOR_NODE_NAME=${NODE_NAME}
+    - CONCORDIUM_NODE_COLLECTOR_ARTIFICIAL_START_DELAY=${NODE_COLLECTOR_DELAY_MS-30000} # 30s
+    depends_on:
+    - node
+    networks:
+    - concordium
+    restart: unless-stopped  # service may time out before the node is operational
+                             # (shouldn't use 'on-failure' as that will make the container auto start on boot)
+    stop_signal: SIGKILL     # application doesn't react to SIGINT nor SIGTERM
+  prometheus:
+    profiles: [prometheus]
+    image: ${PROMETHEUS_IMAGE}
+    networks:
+    - concordium
+    ports:
+    - "9009:9090" # web UI
+    volumes:
+    - ./metrics/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    - metrics:/prometheus
+  node-dashboard-grpc-proxy:
+    profiles: [node-dashboard]
+    image: envoyproxy/envoy:v1.23-latest
+    pull_policy: always
+    entrypoint: /usr/local/bin/envoy --config-path /etc/envoy/envoy.yaml
+    depends_on:
+    - node
+    networks:
+    - concordium
+    ports:
+    - "9901:9901" # admin
+    - "9999:9999" # proxy
+    volumes:
+    - ./node-dashboard/envoy.yaml:/etc/envoy/envoy.yaml:ro
+  node-dashboard:
+    profiles: [node-dashboard]
+    image: ${NODE_DASHBOARD_IMAGE}
+    depends_on:
+    - node-dashboard-grpc-proxy
+    networks:
+    - concordium
+    ports:
+    - "8099:80" # web
+    build:
+      context: ./node-dashboard
+      args:
+        tag: main
+  transaction-logger:
+    profiles: [txlog]
+    image: ${TRANSACTION_LOGGER_IMAGE}
+    environment:
+    - TRANSACTION_LOGGER_NODES=http://node:11000
+    - TRANSACTION_LOGGER_DB_STRING=
+        host=${TXLOG_PGHOST-172.17.0.1}
+        port=${TXLOG_PGPORT-5432}
+        dbname=${TXLOG_PGDATABASE-concordium_txlog}
+        user=${TXLOG_PGUSER-postgres}
+        password=${TXLOG_PGPASSWORD}
+    - TRANSACTION_LOGGER_LOG_LEVEL=debug
+    - TRANSACTION_LOGGER_NUM_PARALLEL_QUERIES=${TXLOG_QUERY_CONCURRENCY-4}
+    depends_on:
+    - node
+    networks:
+    - concordium
+  rosetta:
+    profiles: [rosetta]
+    image: ${ROSETTA_IMAGE}
+    entrypoint:
+    - /bin/sh
+    - -c
+    - sleep "${ROSETTA_STARTUP_DELAY_SECS-60}" && concordium-rosetta
+    environment:
+    - CONCORDIUM_ROSETTA_GRPC_HOST=node
+    - CONCORDIUM_ROSETTA_GRPC_PORT=11000
+    - CONCORDIUM_ROSETTA_NETWORK=${ROSETTA_NETWORK}
+    - CONCORDIUM_ROSETTA_PORT=8080
+    ports:
+    - "8080:8080"
+    restart: unless-stopped # service may start before the node is operational
+    stop_signal: SIGKILL
     depends_on:
     - node
     networks:
@@ -52,5 +138,6 @@ services:
 volumes:
   data:
   config:
+  metrics:
 networks:
   concordium:

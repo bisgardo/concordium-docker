@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ include "fullname" . }}-test"
+  labels: {{ include "labels" . | fromYaml | toJson }}
+  annotations:
+    "helm.sh/hook": test
+data:
+  get-consensus-status.sh: |
+    #!/bin/sh
+    set -eux
+    wget -O ./concordium-client https://distribution.concordium.software/tools/linux/concordium-client_{{ .Values.test.concordiumClientVersion }}
+    chmod +x ./concordium-client
+    # Ping a random replica.
+    ./concordium-client --grpc-ip={{ include "fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local --grpc-port=10000 consensus status

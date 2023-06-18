@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "fullname" . }}
+  labels: {{ include "labels" . | fromYaml | toJson }}
+spec:
+  serviceName: {{ include "fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels: {{ include "selectorLabels" . | fromYaml | toJson }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations: {{ toJson . }}
+      {{- end }}
+      labels: {{ include "selectorLabels" . | fromYaml | toJson }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets: {{ toJson . }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext: {{ toJson . }}
+      {{- end }}
+      containers:
+      - name: node
+        image: "{{ .Values.node.image }}"
+        command: [ /concordium-node ]
+        env:
+        - name: CONCORDIUM_NODE_DATA_DIR
+          value: /mnt/data
+        - name: CONCORDIUM_NODE_CONFIG_DIR
+          value: /mnt/data
+        - name: CONCORDIUM_NODE_CONSENSUS_GENESIS_DATA_FILE
+          value: /mnt/genesis/genesis.dat
+        - name: CONCORDIUM_NODE_CONNECTION_BOOTSTRAP_NODES
+          value: "bootstrap.{{ include "domain" . }}:8888"
+        - name: CONCORDIUM_NODE_RPC_SERVER_ADDR
+          value: "0.0.0.0"
+        - name: CONCORDIUM_NODE_PROMETHEUS_SERVER
+          value: "1"
+        - name: CONCORDIUM_NODE_PROMETHEUS_LISTEN_ADDRESSS
+          value: "0.0.0.0"
+        ports:
+        - name: p2p
+          containerPort: 8888
+        - name: rpc
+          containerPort: 10000
+        - name: metrics
+          containerPort: 9090
+        {{- with .Values.resources }}
+        resources: {{ toJson . }}
+        {{- end }}
+        {{- with .Values.securityContext }}
+        securityContext: {{ toJson . }}
+        {{- end }}
+        volumeMounts:
+        - name: data
+          mountPath: /mnt/data
+        - name: genesis
+          mountPath: /mnt/genesis
+      {{- if .Values.node.name }}
+      - name: collector
+        image: "{{ .Values.node.collectorImage | default .Values.node.image }}"
+        command: [ /node-collector ]
+        env:
+        - name: CONCORDIUM_NODE_COLLECTOR_URL
+          value: "https://dashboard.{{ include "domain" . }}/nodes/post"
+        - name: CONCORDIUM_NODE_COLLECTOR_GRPC_HOST
+          value: "http://localhost:10000"
+        - name: CONCORDIUM_NODE_COLLECTOR_NODE_NAME
+          value: "{{ .Values.node.name }}"
+      {{- end }}
+      volumes:
+      - name: genesis
+        configMap:
+          name: genesis
+          items:
+          - key: "{{ .Values.network }}"
+            path: ./genesis.dat
+      enableServiceLinks: false
+      {{- with .Values.restartPolicy }}
+      restartPolicy: {{ . }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector: {{ toJson . }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity: {{ toJson . }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations: {{ toJson . }}
+      {{- end }}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: "{{ .Values.storage.className }}"
+      resources:
+        requests:
+          storage: "{{ .Values.storage.size }}"

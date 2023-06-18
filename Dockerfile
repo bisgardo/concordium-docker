@@ -1,54 +1,64 @@
-# Except for usage in FROM, these ARGs need to be redeclared in the contexts that they're used in.
+# Except when used in FROM instructions, globally declared ARGs must be redeclared in the contexts in which they're used.
 # Default values defined here will still apply if they're not overridden.
-ARG tag
-ARG ghc_version=8.10.4
-ARG rust_version=1.53.0
-ARG flatbuffers_tag=v2.0.0
-ARG extra_features='instrumentation'
-ARG debian_base_image_tag='buster'
+
+# Repository holding the source code for the Node.
+ARG git_repo_url='https://github.com/Concordium/concordium-node.git'
+
+# Tag of node to build. The default value the oldest version of the node that the build file has been verified to work with.
+# It's intended to serve only as documentation as the user is expected to override the value.
+ARG tag=5.3.2-1
+ARG ghc_version=9.2.7
+ARG rust_version=1.68.2
+ARG cmake_tag=v3.16.3
+ARG flatbuffers_tag=v22.12.6
+ARG protobuf_tag=v3.15.8
+ARG extra_features=''
+ARG debian_release='buster'
 
 # Clone sources.
-FROM alpine/git:latest as source
+FROM alpine/git:latest AS source
+ARG git_repo_url
 ARG tag
-RUN git \
-    -c advice.detachedHead=false \
-    clone \
-    --branch="${tag}" \
-    --recurse-submodules \
-    --depth=1 \
-    https://github.com/Concordium/concordium-node.git \
-    /source
+WORKDIR /source
+RUN git -c advice.detachedHead=false clone --branch="${tag}" --recurse-submodules --depth=1 "${git_repo_url}" .
 
 # Build 'concordium-node'.
 FROM haskell:${ghc_version}-${debian_base_image_tag} as build
 RUN apt-get update && \
     apt-get install -y wget unzip liblmdb-dev libpq-dev libssl-dev libunbound-dev && \
     rm -rf /var/lib/apt/lists/*
+WORKDIR /build
+ARG protobuf_tag
+RUN git -c advice.detachedHead=false clone --branch="${protobuf_tag}" --recurse-submodules --depth=1 https://github.com/protocolbuffers/protobuf.git .
+# Should be 'cmake . && ...' as of v3.21.
+RUN cmake ./cmake && cmake --build . --parallel "$(nproc)"
 
-ARG rust_version
-ARG ghc_version
+# Build 'concordium-node' (and 'node-collector') in temporary image.
+FROM haskell:${ghc_version}-slim-${debian_release} AS build
+RUN apt-get update && \
+    apt-get install -y liblmdb-dev libpq-dev libssl-dev pkg-config && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install Rust.
-RUN curl https://sh.rustup.rs -sSf | \
-    sh -s -- --profile=minimal --default-toolchain="${rust_version}" --component=clippy -y
+ARG rust_version
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
+    sh -s -- --profile=minimal --default-toolchain="${rust_version}" -y
 ENV PATH="${PATH}:/root/.cargo/bin"
 
 # Copy source.
-COPY --from=source /source /build
 WORKDIR /build
+COPY --from=source /source .
 
-# Temporary hack: Because the appropriate Cargo.lock files aren't checked in,
-# the library 'zeroize' gets updated to an incompatible version
-# (see 'https://github.com/Concordium/concordium-node/issues/109' for more details).
-# More similar hacks are likely to be needed in the future if old versions need to be built.
-# The hack will be removed once the most recent tag builds without it.
-RUN (cd concordium-base/rust-src && cargo update -p=zeroize --precise=1.3.0) && \
-    (cd concordium-node && cargo update -p=zeroize --precise=1.3.0)
+# Copy protobuf compiler that was built in a previous step.
+# This is a dependency of 'prost-build' as of v0.11 which no longer bundles/builds this tool
+# (see 'https://github.com/tokio-rs/prost/tree/4459a1e36a63a0e10e418b823957cc80d9fbc744#protoc')
+# and 'proto-lens-protobuf-types' which is a dependency of 'concordium-consensus'.
+COPY --from=protobuf /build/protoc /usr/local/bin/protoc
 
 # Compile consensus (Haskell and some Rust).
-RUN stack build --stack-yaml=concordium-consensus/stack.yaml
+RUN stack build --stack-yaml=./concordium-consensus/stack.yaml
 
-# Install flatbuffer compiler.
+# Download and install FlatBuffers compiler.
 ARG flatbuffers_tag
 RUN wget \
         -q \
@@ -68,27 +78,36 @@ RUN echo 'deb http://deb.debian.org/debian testing main' >> /etc/apt/sources.lis
 
 # Compile 'concordium-node' (Rust, depends on consensus).
 # Note that feature 'profiling' implies 'static' (i.e. static linking).
-# As the build prodecure assumes dynamic linking, this should not be used.
-ARG extra_features
-RUN cargo build --manifest-path=concordium-node/Cargo.toml --release --features="collector,${extra_features}"
+# As the build prodecure expects dynamic linking, that feature must not be used.
+ARG node_features
+RUN cargo build --manifest-path=./concordium-node/Cargo.toml --release --features="${node_features}"
 
-# Copy artifacts to '/out'.
-RUN mkdir -p /out/release && \
+# Compile 'collector' (Rust).
+# TODO Build separately.
+RUN cargo build --manifest-path=./collector/Cargo.toml --release
+
+# Copy artifacts to '/target'.
+ARG ghc_version
+RUN mkdir -p /target/bin && \
     cp \
-        /build/concordium-node/target/release/concordium-node \
-        /build/concordium-node/target/release/node-collector \
-        /out/release && \
-    mkdir -p /out/libs && \
-    cp /build/concordium-base/rust-src/target/release/*.so /out/libs && \
-    cp /build/concordium-consensus/.stack-work/install/x86_64-linux/*/*/lib/x86_64-linux-ghc-*/libHS*.so /out/libs && \
-    cp /build/concordium-consensus/smart-contracts/lib/*.so /out/libs && \
-    cp /root/.stack/snapshots/x86_64-linux/*/*/lib/x86_64-linux-ghc-*/libHS*.so /out/libs && \
-    cp /opt/ghc/*/lib/*/*/lib*.so* /out/libs
+        ./concordium-node/target/release/concordium-node \
+        ./collector/target/release/node-collector \
+        /target/bin/ && \
+    mkdir -p /target/lib && \
+    cp ./concordium-base/rust-src/target/release/*.so /target/lib/ && \
+    cp ./concordium-base/smart-contracts/lib/*.so /target/lib/ && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib/ && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib/ && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /target/lib/
 
-# Result image.
-FROM debian:${debian_base_image_tag}
+# Build result image.
+FROM debian:${debian_release}-slim
+# Runtime dependencies:
+# - 'ca-certificates' (SSL certificates for CAs trusted by Mozilla): Needed for Node Collector to push via HTTPS.
+# - 'liblmdb0'(LMDB implementation): Used to persist the Node's state.
+# - 'libnuma1' (Non-Uniform Memory Architecture management): Low-level dependency.
 RUN apt-get update && \
-    apt-get install -y ca-certificates unbound libpq-dev liblmdb-dev && \
+    apt-get install -y ca-certificates liblmdb0 libnuma1 && \
     rm -rf /var/lib/apt/lists/*
 
 # P2P listen port ('concordium-node').
@@ -97,7 +116,12 @@ EXPOSE 8888
 EXPOSE 9090
 # GRPC port ('concordium-node').
 EXPOSE 10000
+# GRPC APIv2 port.
+EXPOSE 11000
 
-COPY --from=build /out/release/concordium-node /concordium-node
-COPY --from=build /out/release/node-collector /node-collector
-COPY --from=build /out/libs/* /usr/lib/x86_64-linux-gnu/
+COPY --from=build /target/bin/concordium-node /concordium-node
+COPY --from=build /target/bin/node-collector /node-collector
+COPY --from=build /target/lib/* /usr/local/lib/
+
+# Reconfigure dynamic linker to ensure that the shared libraries (in '/usr/local/lib') get loaded.
+RUN ldconfig

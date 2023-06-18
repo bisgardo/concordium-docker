@@ -1,0 +1,65 @@
+version: "3.0"
+services:
+  ccdscan_frontend:
+    image: ${CCDSCAN_FRONTEND_IMAGE}
+    environment:
+    - HOST=0.0.0.0
+    - PORT=8000
+    ports:
+    - "5080:8000"
+    depends_on:
+    - ccdscan_backend
+    stop_signal: SIGKILL
+    networks:
+    - ccdscan
+    build:
+      context: ./ccdscan
+      dockerfile: ./frontend.Dockerfile
+      args:
+        tag: main
+        network: ${NETWORK}
+  ccdscan_backend:
+    image: ${CCDSCAN_BACKEND_IMAGE}
+    ports:
+    - "5000:5000"
+    environment:
+    - ImportValidation__Enabled=false
+    - ConcordiumNodeGrpc__AuthenticationToken=rpcadmin
+    - ConcordiumNodeGrpc__Address=http://node:10000
+    - PostgresDatabase__ConnectionString=
+        Host=ccdscan_timescaledb;
+        Port=5432;
+        Database=ccscan;
+        User ID=postgres;
+        Password=password;
+        Include Error Detail=true;
+    # Would be nice if this could be disabled...
+    - PostgresDatabase__ConnectionStringNodeCache=
+        Host=ccdscan_timescaledb;
+        Port=5432;
+        Database=ccscan_node_cache;
+        User ID=postgres;
+        Password=password;
+        Include Error Detail=true;
+    - FeatureFlags__ConcordiumNodeImportEnabled=true
+    - FeatureFlags__MigrateDatabasesAtStartup=true
+    - NodeCollectorService__Address=https://dashboard.${DOMAIN}/nodesSummary
+    networks:
+    - concordium
+    - ccdscan
+    depends_on:
+    - ccdscan_timescaledb
+    restart: unless-stopped  # it seems like startup sometimes fails because the DB isn't ready yet
+  # TODO Connect to external DB by default and enable this with another override.
+  ccdscan_timescaledb:
+    image: ${CCDSCAN_TIMESCALEDB_IMAGE-timescale/timescaledb:latest-pg13}
+    environment:
+    - POSTGRES_PASSWORD=password
+    networks:
+    - ccdscan
+    volumes:
+    - ccdscan:/var/lib/postgresql/data
+volumes:
+  ccdscan:
+networks:
+  ccdscan:
