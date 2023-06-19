@@ -62,7 +62,7 @@ The two applications are intended to run in separate containers instantiated fro
 The image may be build with Docker using the following command or using Docker Compose as described below:
 
 ```shell
-docker build -t concordium-node:<tag> --build-arg tag=<tag> .
+docker build -t concordium-node:<tag> --build-arg=tag=<tag> .
 ```
 
 where `<tag>` is the desired commit tag from the
@@ -112,7 +112,7 @@ A working Envoy configuration is stored in [`envoy.yaml`](./node-dashboard/envoy
 Build:
 
 ```shell
-docker build -t concordium-node-dashboard:<tag> --build-arg tag=main ./node-dashboard
+docker build -t concordium-node-dashboard:<tag> --build-arg=tag=main ./node-dashboard
 ```
 
 Run:

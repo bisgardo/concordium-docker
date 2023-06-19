@@ -9,9 +9,9 @@ ARG git_repo_url='https://github.com/Concordium/concordium-node.git'
 ARG tag=5.3.2-1
 ARG ghc_version=9.2.7
 ARG rust_version=1.68.2
-ARG cmake_tag=v3.16.3
+ARG cmake_version=3.16.3
 ARG flatbuffers_tag=v22.12.6
-ARG protobuf_tag=v3.15.8
+ARG protobuf_version=3.20.1
 ARG extra_features=''
 ARG debian_release='buster'
 
@@ -23,18 +23,20 @@ WORKDIR /source
 RUN git -c advice.detachedHead=false clone --branch="${tag}" --recurse-submodules --depth=1 "${git_repo_url}" .
 
 # Clone and compile FlatBuffers compiler 'flatc'.
+# This is necessary because the official binaries are built against a newer runtime version than the one shipped with Buster.
 FROM debian:${debian_release}-slim AS flatbuffers
 RUN apt-get update && \
-    apt-get install -y g++ git make && \
+    apt-get install -y curl g++ git make && \
     rm -rf /var/lib/apt/lists/*
-# Clone and compile suitable version of CMake.
+# Download and install suitable version of CMake.
 # This is currently necessary as the version shipped with Buster's official repo (v3.13) is too old to build the latest tag (v3.16+).
-ARG cmake_tag
+# The tool was previously built from source; see commit 7001a39 for the implementation.
 WORKDIR /tmp/cmake
-RUN git clone -c advice.detachedHead=false --branch="${cmake_tag}" --depth=1 https://gitlab.kitware.com/cmake/cmake.git .
-RUN ./bootstrap -- -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_USE_OPENSSL=OFF && \
-    make && \
-    make install
+ARG cmake_version
+RUN curl -sSfL "https://github.com/Kitware/CMake/releases/download/v${cmake_version}/cmake-${cmake_version}-linux-x86_64.tar.gz" | \
+    tar -zx --strip-components=1 && \
+    mv bin/cmake /usr/local/bin/ && \
+    mv share/cmake-* /usr/local/share/
 WORKDIR /build
 ARG flatbuffers_tag
 # Clone with full history because some build step uses 'git describe' to print some version.
@@ -44,21 +46,10 @@ RUN cmake -G "Unix Makefiles" . && \
     make -j"$(nproc)" && \
     make install
 
-# Clone and compile protobuf compiler 'protoc'.
-FROM debian:${debian_release} AS protobuf
-RUN apt-get update && \
-    apt-get install -y git cmake g++ && \
-    rm -rf /var/lib/apt/lists/*
-WORKDIR /build
-ARG protobuf_tag
-RUN git -c advice.detachedHead=false clone --branch="${protobuf_tag}" --recurse-submodules --depth=1 https://github.com/protocolbuffers/protobuf.git .
-# Should be 'cmake . && ...' as of v3.21.
-RUN cmake ./cmake && cmake --build . --parallel "$(nproc)"
-
 # Build 'concordium-node' (and 'node-collector') in temporary image.
 FROM haskell:${ghc_version}-slim-${debian_release} AS build
 RUN apt-get update && \
-    apt-get install -y liblmdb-dev libpq-dev libssl-dev pkg-config && \
+    apt-get install -y unzip liblmdb-dev libpq-dev libssl-dev pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Rust.
@@ -71,17 +62,26 @@ ENV PATH="${PATH}:/root/.cargo/bin"
 WORKDIR /build
 COPY --from=source /source .
 
-# Copy protobuf compiler that was built in a previous step.
+# Download and install suitable version of the protobuf compiler 'protoc' and check that it's callable.
 # This is a dependency of 'prost-build' as of v0.11 which no longer bundles/builds this tool
 # (see 'https://github.com/tokio-rs/prost/tree/4459a1e36a63a0e10e418b823957cc80d9fbc744#protoc')
 # and 'proto-lens-protobuf-types' which is a dependency of 'concordium-consensus'.
-COPY --from=protobuf /build/protoc /usr/local/bin/protoc
+# This tool was previously built from source; see commit 7001a39 for the implementation.
+ARG protobuf_version
+RUN curl \
+        -sSfL \
+        -o protoc.zip \
+        "https://github.com/protocolbuffers/protobuf/releases/download/v${protobuf_version}/protoc-${protobuf_version}-linux-x86_64.zip" && \
+    unzip -qq protoc.zip bin/protoc -d /usr/local/ && \
+    rm protoc.zip && \
+    protoc --version
 
 # Compile consensus (Haskell and some Rust).
 RUN stack build --stack-yaml=./concordium-consensus/stack.yaml
 
-# Copy FlatBuffers compiler that was built in the previous step.
+# Copy FlatBuffers compiler that was built in a previous step and check that it's callable.
 COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
+RUN flatc --version
 
 # Compile 'concordium-node' (Rust, depends on consensus).
 # Note that feature 'profiling' implies 'static' (i.e. static linking).
