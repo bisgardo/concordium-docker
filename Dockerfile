@@ -25,8 +25,13 @@ RUN git -c advice.detachedHead=false clone --branch="${tag}" --recurse-submodule
 # Clone and compile FlatBuffers compiler 'flatc'.
 # This is necessary because the official binaries are built against a newer runtime version than the one shipped with Buster.
 FROM debian:${debian_release}-slim AS flatbuffers
+# Install build dependencies:
+# - 'curl': Used to fetch CMake binary and modules.
+# - 'git': Used to fetch FlatBuffers source.
+# - 'g++': Used to compile FlatBuffers source files.
+# - 'make': Used to orchestrate the FlatBuffers build (via CMake).
 RUN apt-get update && \
-    apt-get install -y curl g++ git make && \
+    apt-get install -y curl git g++ make && \
     rm -rf /var/lib/apt/lists/*
 # Download and install suitable version of CMake.
 # This is currently necessary as the version shipped with Buster's official repo (v3.13) is too old to build the latest tag (v3.16+).
@@ -48,21 +53,24 @@ RUN cmake -G "Unix Makefiles" . && \
 
 # Build 'concordium-node' (and 'node-collector') in temporary image.
 FROM haskell:${ghc_version}-slim-${debian_release} AS build
+# Install build dependencies:
+# - 'unzip': Used to decompress archive containing the protobuf binary.
+# - 'liblmdb-dev': Development files for LMDB (dependency of Haskell bindings package 'lmdb').
 RUN apt-get update && \
-    apt-get install -y unzip liblmdb-dev libpq-dev libssl-dev pkg-config && \
+    apt-get install -y unzip liblmdb-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Rust.
+# Install Rust via rustup.
 ARG rust_version
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
     sh -s -- --profile=minimal --default-toolchain="${rust_version}" -y
 ENV PATH="${PATH}:/root/.cargo/bin"
 
-# Copy source.
+# Copy source from temporary image.
 WORKDIR /build
 COPY --from=source /source .
 
-# Download and install suitable version of the protobuf compiler 'protoc' and check that it's callable.
+# Download and install suitable version of the protobuf compiler 'protoc' and verify that it's callable.
 # This is a dependency of 'prost-build' as of v0.11 which no longer bundles/builds this tool
 # (see 'https://github.com/tokio-rs/prost/tree/4459a1e36a63a0e10e418b823957cc80d9fbc744#protoc')
 # and 'proto-lens-protobuf-types' which is a dependency of 'concordium-consensus'.
@@ -74,14 +82,14 @@ RUN curl \
         "https://github.com/protocolbuffers/protobuf/releases/download/v${protobuf_version}/protoc-${protobuf_version}-linux-x86_64.zip" && \
     unzip -qq protoc.zip bin/protoc -d /usr/local/ && \
     rm protoc.zip && \
-    protoc --version
+    protoc --version > /dev/null
 
 # Compile consensus (Haskell and some Rust).
 RUN stack build --stack-yaml=./concordium-consensus/stack.yaml
 
-# Copy FlatBuffers compiler that was built in a previous step and check that it's callable.
+# Copy 'flatc' binary that was built in a previous step and verify that it's callable.
 COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
-RUN flatc --version
+RUN flatc --version > /dev/null
 
 # Compile 'concordium-node' (Rust, depends on consensus).
 # Note that feature 'profiling' implies 'static' (i.e. static linking).
@@ -109,12 +117,11 @@ RUN mkdir -p /target/bin && \
 
 # Build result image.
 FROM debian:${debian_release}-slim
-# Runtime dependencies:
+# Install runtime dependencies:
 # - 'ca-certificates' (SSL certificates for CAs trusted by Mozilla): Needed for Node Collector to push via HTTPS.
 # - 'liblmdb0'(LMDB implementation): Used to persist the Node's state.
-# - 'libnuma1' (Non-Uniform Memory Architecture management): Low-level dependency.
 RUN apt-get update && \
-    apt-get install -y ca-certificates liblmdb0 libnuma1 && \
+    apt-get install -y ca-certificates liblmdb0 && \
     rm -rf /var/lib/apt/lists/*
 
 # P2P listen port ('concordium-node').
