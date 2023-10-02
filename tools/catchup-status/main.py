@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from pydantic import BaseModel
 from pydantic.functional_validators import PlainValidator
 from typing_extensions import Annotated
@@ -9,16 +11,32 @@ import argparse
 # TODO: Add ability to select version rather than percentile? And default to version of tracked node?
 #       Might also allow different percentiles for version lookup vs block lookup.
 parser = argparse.ArgumentParser(prog='catchup-status', description='Status of catchup')
+parser.add_argument('-n', '--network', type=str, default='mainnet')
 parser.add_argument('-p', '--percentile', type=int, default=90)
-parser.add_argument('-u', '--url', type=str, default='https://dashboard.mainnet.concordium.software/nodesSummary')
+parser.add_argument('-u', '--url', type=str)
 parser.add_argument('node', type=str)
 args = parser.parse_args()
 
 # Use same settings for both percentiles for now.
+network = args.network
 version_percentile = args.percentile / 100
 block_height_percentile = args.percentile / 100
-node_name = args.node
 url = args.url
+node_name = args.node
+
+
+def network_domain(n):
+    if n == 'mainnet':
+        return 'mainnet.concordium.software'
+    return f'{n}.concordium.com'
+
+
+def network_url(n):
+    return 'https://dashboard.' + network_domain(n) + '/nodesSummary'
+
+
+if not url:
+    url = network_url(network)
 
 
 # Set up model for data to be fetched.
