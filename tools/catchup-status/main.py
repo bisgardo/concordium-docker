@@ -88,15 +88,16 @@ while True:
     block_height, node_block_height = run(url, node_name, version_percentile, block_height_percentile)
 
     height_pct = 100*node_block_height/block_height
-    #print('previous_pct',previous_pct)
-    #print('height_pct',height_pct)
+    #print('previous_pct', previous_pct)
+    #print('height_pct', height_pct)
 
     secs_remaining = None
     if previous_pct:
         progress_pct = height_pct - previous_pct
-        #print('progress_pct',progress_pct)
+        #print('progress_pct', progress_pct)
         if progress_pct > 0:
             progress_pct_per_sec = progress_pct / sleep_secs
+            #print('progress_pct_per_sec', progress_pct_per_sec)
 
             pct_remaining = 100 - height_pct
             secs_remaining = pct_remaining / progress_pct_per_sec
