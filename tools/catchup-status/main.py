@@ -15,8 +15,8 @@ parser = argparse.ArgumentParser(prog='catchup-status', description='Status of c
 parser.add_argument('-n', '--network', type=str, default='mainnet')
 parser.add_argument('-p', '--percentile', type=int, default=90)
 parser.add_argument('-u', '--url', type=str, default='')
-parser.add_argument('-s', '--period-secs', type=int, default=2)
-parser.add_argument('node', type=str)
+parser.add_argument('-s', '--period-secs', type=int, default=10)
+parser.add_argument('nodes', nargs=argparse.REMAINDER)
 args = parser.parse_args()
 
 # Use same settings for both percentiles for now.
@@ -25,7 +25,7 @@ version_percentile = args.percentile / 100
 block_height_percentile = args.percentile / 100
 url = args.url
 sleep_secs = args.period_secs
-node_name = args.node
+node_names = args.nodes
 
 
 def network_domain(n):
@@ -54,17 +54,12 @@ class NodeSummary(BaseModel):
     bestBlockHeight: int
 
 
-def run(url, node_name, version_percentile, block_height_percentile):
+def run(url, include_node, version_percentile, block_height_percentile):
     # Fetch and decode JSON.
     r = requests.get(url)
     # TODO: Check status code.
     summaries = [NodeSummary(**s) for s in r.json()]
     #print(len(summaries))
-
-    # TODO: Validate...
-    #       ...and/or allow multiple nodes to be tracked?
-    node = [s for s in summaries if s.nodeName == node_name][0]
-    #print('node', node)
 
     # Resolve version for the provided percentile.
     sorted_versions = sorted([s.client for s in summaries])
@@ -80,12 +75,24 @@ def run(url, node_name, version_percentile, block_height_percentile):
     block_height_percentile_rank = int(version_percentile * (len(sorted_versions)-1)) # we don't need perfect accuracy
     block_height = sorted_block_heights[block_height_percentile_rank]
 
-    return block_height, node.bestBlockHeight
+    node_heights = [s.bestBlockHeight for s in summaries if include_node(s.nodeName)]
+    #print('node_heights', node_heights)
+
+    return block_height, node_heights
 
 
 previous_pct = 0
 while True:
-    block_height, node_block_height = run(url, node_name, version_percentile, block_height_percentile)
+    block_height, node_block_heights = run(
+            url,
+            lambda node_name: node_name in node_names,
+            version_percentile,
+            block_height_percentile)
+
+    # TODO: Map over results and present nicely.
+    if not node_block_heights:
+        raise Exception('node not found')
+    node_block_height = node_block_heights[0]
 
     height_pct = 100*node_block_height/block_height
     #print('previous_pct',previous_pct)
