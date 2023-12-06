@@ -1,2 +1,2 @@
 MO_python_venv
-#MO_override_var COMPOSE_PROFILES prometheus,node-dashboard
+#MO_override_var COMPOSE_PROFILES prometheus

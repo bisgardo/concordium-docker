@@ -128,9 +128,7 @@ RUN apt-get update && \
 EXPOSE 8888
 # Prometheus port ('concordium-node').
 EXPOSE 9090
-# GRPC port ('concordium-node').
-EXPOSE 10000
-# GRPC APIv2 port.
+# GRPC API (v2) port.
 EXPOSE 11000
 
 COPY --from=build /target/bin/concordium-node /concordium-node

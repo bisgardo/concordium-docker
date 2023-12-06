@@ -29,7 +29,6 @@ To enable a given feature, append `+` followed by the name of the feature to the
 
 The following features are available:
 
-- [Node Dashboard](#node-dashboard): `+node-dashboard`
 - [Prometheus](#metrics) (metrics): `+prometheus`
 - [Transaction Logger](#transaction-logging): `+txlog`
 - [Rosetta](#rosetta): `+rosetta`
@@ -37,10 +36,10 @@ The following features are available:
 
 *Example*
 
-Run a node with name `<node-name>` and connected instances of Prometheus and Rosetta on network `<network>`:
+Run a node with name `<node-name>` and connected instances of Prometheus and Transaction Logger on network `<network>`:
 
 ```shell
-NODE_NAME=<node-name> ./run.sh <network> +prometheus +rosetta
+NODE_NAME=<node-name> ./run.sh <network> +prometheus +txlog
 ```
 
 ## Build
@@ -56,7 +55,7 @@ due to the project's dependency on the [Haskell toolchain](https://hub.docker.co
 ### `concordium-node`
 
 Dual-purpose Docker image containing the applications `concordium-node` and `node-collector`
-(for reporting state to the public [dashboard](https://dashboard.mainnet.concordium.software/)).
+(for reporting state to the public [dashboard](https://dashboard.mainnet.concordium.software)).
 The two applications are intended to run in separate containers instantiated from this image.
 
 The image may be build with Docker using the following command or using Docker Compose as described below:
@@ -73,7 +72,7 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from using a
 previously cached clone of the source code at an older version of the branch.
 
-The currently active tag (as of 2023-10-23) is `6.1.7-0` for both mainnet and testnet.
+The currently active tag (as of 2023-12-06) is `6.2.3-0` for both Mainnet and Testnet.
 
 *Optional*
 
@@ -95,29 +94,10 @@ allowing it to be passed as a simple bind mount.
 
 To this end, the following genesis files are located in directory [`genesis`](./genesis):
 
-- `mainnet-0.dat`: Initial genesis data for the mainnet (started on 2021-06-09; [source](https://distribution.mainnet.concordium.software/data/genesis.dat)).
-- `testnet-1.dat`: Genesis data for the current testnet (started on 2022-06-13; [source](https://distribution.testnet.concordium.com/data/genesis.dat)).
+- `mainnet-0.dat`: Initial genesis data for Mainnet (started on 2021-06-09; [source](https://distribution.mainnet.concordium.software/data/genesis.dat)).
+- `testnet-1.dat`: Genesis data for Testnet (started on 2022-06-13; [source](https://distribution.testnet.concordium.com/data/genesis.dat)).
 
 The directory also holds the now-unused dockerfile for the genesis image. See commit `17dde7d` for the old instructions.
-
-### `node-dashboard`
-
-Image containing the [`node-dashboard`](https://github.com/Concordium/concordium-node-dashboard.git) web app
-for inspecting the state of a locally running node.
-
-To enable the dashboard to communicate with the node over gRPC,
-an [Envoy](https://www.envoyproxy.io/) instance must be running to proxy the data.
-A working Envoy configuration is stored in [`envoy.yaml`](./node-dashboard/envoy.yaml).
-
-Build:
-
-```shell
-docker build -t concordium-node-dashboard:<tag> --build-arg=tag=main ./node-dashboard
-```
-
-Run:
-
-See [`docker-compose.yaml`](./docker-compose.yaml) for a working run configuration (set profile `node-dashboard` to enable).
 
 ## Build and/or run using Docker Compose
 
@@ -125,7 +105,7 @@ The project includes a full Docker Compose deployment for running a node and col
 optionally along with a set of related services (each of which is enabled individually).
 
 The main setup is configured in [`docker-compose.yaml`](./docker-compose.yaml)
-and is thoroughly parameterized to work with any Concordium blockchain network.
+and is thoroughly parameterized to work with any Concordium blockchain network (including unofficial ones).
 
 It relies on features that are available only in relatively recent versions of Compose.
 The `requirements.txt` file pins a compatible version (the latest v1 release at the time of this writing)
@@ -133,7 +113,7 @@ which may be installed (preferably in a [virtualenv](https://docs.python.org/3/l
 using `pip install -r requirements.txt`.
 The setup has not yet been tested with [Compose v2](https://docs.docker.com/compose/cli-command/).
 
-To build and run a node/collector, and Node Dashboard on the mainnet network, adjust and run the following command:
+To build and run a node/collector instance on Mainnet with Prometheus enabled, adjust and run the following command:
 
 ```shell
 NODE_NAME=my_node \
@@ -141,14 +121,13 @@ NODE_TAG=<tag> \
 DOMAIN=mainnet.concordium.software \
 GENESIS_DATA_FILE=./genesis/mainnet-0.dat \
 NODE_IMAGE=concordium-node:<tag> \
-NODE_DASHBOARD_IMAGE=concordium-node-dashboard:node-<tag> \
-COMPOSE_PROFILES=node-dashboard \
+COMPOSE_PROFILES=prometheus \
 docker-compose --project-name=mainnet up
 ```
 
 where `<tag>` is as described above.
 
-The variable `NODE_NAME` sets the name to be displayed on the public dashboard.
+The variable `NODE_NAME` sets the name to be displayed on [CCDScan](https://ccdscan.io/nodes).
 
 The variable `DOMAIN` determines which concrete network to join.
 The publicly available official options are:
@@ -167,10 +146,6 @@ By default the node collector uses gRPC APIv2 (i.e. port 11000). To support runn
 Adding `--project-name=<name>` to `docker-compose up` prepends `<name>` to the names of containers and other persistent resources,
 making it possible to switch between networks without having to delete data and existing containers.
 Note that because ports are fixed, running multiple nodes at the same time is not supported with the current setup.
-
-Enabling profile `node-dashboard` (i.e. adding `--profile=node-dashboard` or setting `COMPOSE_PROFILES=node-dashboard`)
-activates a Node Dashboard instance on port `8099` (and an accompanying Envoy gRPC proxy instance)
-to be started up as part of the deployment.
 
 The command will automatically build the images from scratch if they don't already exist.
 Set the flag `--no-build` to prevent that.
@@ -328,16 +303,15 @@ A GitHub Actions CI job for building and pushing the images to
 [a public registry](https://hub.docker.com/r/bisgardo/concordium-node) is defined in
 [`./.github/workflows/build-push.yaml`](.github/workflows/build-push.yaml).
 
-A mainnet node setup may for example be run using the Docker Compose script like so:
+For example, a Mainnet node setup that includes a Prometheus instance may be run using the Docker Compose script like so:
 
 ```shell
 export NODE_NAME=my_node
 export DOMAIN=mainnet.concordium.software
 export GENESIS_DATA_FILE=./genesis/mainnet-0.dat
 export NODE_IMAGE=bisgardo/concordium-node:<tag>
-export NODE_DASHBOARD_IMAGE=bisgardo/concordium-node-dashboard:<tag>
 docker-compose pull # prevent 'up' from building instead of pulling
-docker-compose --project-name=mainnet up --profile=node-dashboard --no-build
+docker-compose --project-name=mainnet up --profile=prometheus --no-build
 ```
 
 The convenience script `run.sh` loads the parameters from a `<network>.env` file:
@@ -362,7 +336,7 @@ of applying `docker-compose.override.yaml` automatically (it could still be enab
 Using `run.sh`, the example above simplifies to
 
 ```shell
-NODE_NAME=my_node ./run.sh mainnet +node-dashboard
+NODE_NAME=my_node ./run.sh mainnet +prometheus
 ```
 
 To instead enable [transaction logging](#transaction-logging), append `+txlog` and pass the DB password:
