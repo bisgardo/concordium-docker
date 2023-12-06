@@ -7,7 +7,7 @@
 #   NODE_NAME=<node-name> ./run.sh <network>
 # 
 # where <network> is the network on which the node is intended to join
-# and <node-name> is the name of the node to appear on the CCDScan instance of that network.
+# and <node-name> is the name of the node to appear on CCDScan for that network.
 # 
 # The parameters of the deployment are loaded from an environment file <network>.env in the current working directory.
 # All images referenced in this file are expected to be pullable from the appropriate image registry.

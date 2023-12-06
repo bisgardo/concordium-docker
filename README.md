@@ -105,7 +105,7 @@ The project includes a full Docker Compose deployment for running a node and col
 optionally along with a set of related services (each of which is enabled individually).
 
 The main setup is configured in [`docker-compose.yaml`](./docker-compose.yaml)
-and is thoroughly parameterized to work with any Concordium blockchain network (including custom ones).
+and is thoroughly parameterized to work with any Concordium blockchain network (including unofficial ones).
 
 It relies on features that are available only in relatively recent versions of Compose.
 The `requirements.txt` file pins a compatible version (the latest v1 release at the time of this writing)
@@ -113,7 +113,7 @@ which may be installed (preferably in a [virtualenv](https://docs.python.org/3/l
 using `pip install -r requirements.txt`.
 The setup has not yet been tested with [Compose v2](https://docs.docker.com/compose/cli-command/).
 
-To build and run a node/collector and Prometheus instance on the network Mainnet, adjust and run the following command:
+To build and run a node/collector instance on Mainnet with Prometheus enabled, adjust and run the following command:
 
 ```shell
 NODE_NAME=my_node \
@@ -127,7 +127,7 @@ docker-compose --project-name=mainnet up
 
 where `<tag>` is as described above.
 
-The variable `NODE_NAME` sets the name to be displayed on [CCDScan](https://ccdscan.io).
+The variable `NODE_NAME` sets the name to be displayed on [CCDScan](https://ccdscan.io/nodes).
 
 The variable `DOMAIN` determines which concrete network to join.
 The publicly available official options are:
@@ -303,7 +303,7 @@ A GitHub Actions CI job for building and pushing the images to
 [a public registry](https://hub.docker.com/r/bisgardo/concordium-node) is defined in
 [`./.github/workflows/build-push.yaml`](.github/workflows/build-push.yaml).
 
-A Mainnet node setup that includes a Prometheus instance may for example be run using the Docker Compose script like so:
+For example, a Mainnet node setup that includes a Prometheus instance may be run using the Docker Compose script like so:
 
 ```shell
 export NODE_NAME=my_node

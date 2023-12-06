@@ -34,7 +34,7 @@ services:
     ports:
     - "8888:8888"   # P2P
     - "9090:9090"   # Prometheus (metrics)
-    - "11000:11000" # gRPC APIv2
+    - "11000:11000" # gRPC API (v2)
     volumes:
     - ${GENESIS_DATA_FILE}:/mnt/genesis.dat
     - data:/mnt/data
