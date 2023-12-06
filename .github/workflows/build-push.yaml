@@ -13,10 +13,8 @@ on: # yamllint disable-line rule:truthy
 env:
   user: bisgardo
   node_image_repo: 'bisgardo/concordium-node'
-  node_dashboard_image_repo: 'bisgardo/concordium-node-dashboard'
   node_tag: '${{ github.event.inputs.node_tag }}'
   node_image_tag: '${{ github.event.inputs.node_image_tag }}'
-  node_dashboard_image_tag: 'node-${{ github.event.inputs.node_image_tag }}'
 
 jobs:
   build-push:
@@ -30,6 +28,5 @@ jobs:
       run: |
         export NODE_TAG="${{ env.node_tag }}"
         export NODE_IMAGE="${{ env.node_image_repo }}:${{ env.node_image_tag }}"
-        export NODE_DASHBOARD_IMAGE=${{ env.node_dashboard_image_repo }}:${{ env.node_dashboard_image_tag }}
         export COMPOSE_PROFILES=node-dashboard
         NODE_NAME= docker-compose build && docker-compose push

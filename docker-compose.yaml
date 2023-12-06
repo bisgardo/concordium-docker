@@ -10,8 +10,6 @@ services:
     - CONCORDIUM_NODE_CONSENSUS_DOWNLOAD_BLOCKS_FROM=https://catchup.${DOMAIN}/blocks.idx
     - CONCORDIUM_NODE_CONSENSUS_GENESIS_DATA_FILE=/mnt/genesis.dat
     - CONCORDIUM_NODE_CONNECTION_BOOTSTRAP_NODES=bootstrap.${DOMAIN}:8888
-    - CONCORDIUM_NODE_RPC_SERVER_ADDR=0.0.0.0
-    - CONCORDIUM_NODE_RPC_SERVER_PORT=10000
     - CONCORDIUM_NODE_GRPC2_LISTEN_ADDRESS=0.0.0.0
     - CONCORDIUM_NODE_GRPC2_LISTEN_PORT=11000
     - CONCORDIUM_NODE_PROMETHEUS_SERVER=1
@@ -35,9 +33,8 @@ services:
     - concordium
     ports:
     - "8888:8888"   # P2P
-    - "10000:10000" # gRPC APIv1
-    - "11000:11000" # gRPC APIv2
     - "9090:9090"   # Prometheus (metrics)
+    - "11000:11000" # gRPC APIv2
     volumes:
     - ${GENESIS_DATA_FILE}:/mnt/genesis.dat
     - data:/mnt/data
@@ -71,33 +68,6 @@ services:
     volumes:
     - ./metrics/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     - metrics:/prometheus
-  node-dashboard-grpc-proxy:
-    profiles: [node-dashboard]
-    image: envoyproxy/envoy:v1.23-latest
-    pull_policy: always
-    entrypoint: /usr/local/bin/envoy --config-path /etc/envoy/envoy.yaml
-    depends_on:
-    - node
-    networks:
-    - concordium
-    ports:
-    - "9901:9901" # admin
-    - "9999:9999" # proxy
-    volumes:
-    - ./node-dashboard/envoy.yaml:/etc/envoy/envoy.yaml:ro
-  node-dashboard:
-    profiles: [node-dashboard]
-    image: ${NODE_DASHBOARD_IMAGE}
-    depends_on:
-    - node-dashboard-grpc-proxy
-    networks:
-    - concordium
-    ports:
-    - "8099:80" # web
-    build:
-      context: ./node-dashboard
-      args:
-        tag: main
   transaction-logger:
     profiles: [txlog]
     image: ${TRANSACTION_LOGGER_IMAGE}
