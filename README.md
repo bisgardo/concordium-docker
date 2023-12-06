@@ -73,7 +73,7 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from using a
 previously cached clone of the source code at an older version of the branch.
 
-The currently active tag (as of 2023-10-23) is `6.1.7-0` for both mainnet and testnet.
+The currently active tag (as of 2023-12-06) is `6.2.3-0` for both mainnet and testnet.
 
 *Optional*
 
