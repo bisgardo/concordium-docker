@@ -1,0 +1,53 @@
+# Deploys (optionally after building) the old Concordium Network Dashboard.
+#
+# Usage:
+#
+#   NETWORK_DASHBOARD_IMAGE=<image> NETWORK_DASHBOARD_PORT=<port> COLLECTOR_BACKEND_DOMAIN=<domain> docker-compose up
+#
+# where
+#   <image>: The name of the image to use or build (default: "network-dashboard").
+#   <port>: The port to start the service on (default: 8080).
+#   <domain>: The domain on which the Concordium Collector Backend is running.
+#             This equals the URL that the official Network Dashboard instance of the network
+#             used to be deployed to, i.e.:
+#             - Mainnet: dashboard.mainnet.concordium.software (default)
+#             - Testnet: dashboard.testnet.concordium.com
+#
+# Example: Build and run image with name 'network-dashboard' on port 8080:
+# - Mainnet: docker-compose up
+# - Testnet: COLLECTOR_BACKEND_DOMAIN=dashboard.testnet.concordium.com docker-compose up
+#
+# Note that since the dashboard automatically refreshes its data continuously,
+# you can stop the server and start it again on a different network.
+# The page will then immediately start showing data from the new network.
+
+version: '3.8'
+services:
+  network-dashboard:
+    image: ${NETWORK_DASHBOARD_IMAGE-network-dashboard}
+    build: .
+    network_mode: default # no idea why but it didn't work without this
+    environment:
+    - COLLECTOR_BACKEND_DOMAIN=${COLLECTOR_BACKEND_DOMAIN-dashboard.mainnet.concordium.software}
+    entrypoint:
+    - /bin/sh
+    - -xc
+    - |
+      # Construct config file from template.
+      # We have to be very careful to make variables expand (or not, as with '$uri') correctly.
+      cat <<EOF > /etc/nginx/conf.d/default.conf
+      server {
+        listen       80;
+        server_name  localhost;
+        rewrite /nodesSummary https://$${COLLECTOR_BACKEND_DOMAIN}/nodesSummary redirect;
+        location / {
+          root   /usr/share/nginx/html;
+          try_files \$$uri /index.html =404;
+        }
+      }
+      EOF
+      # It also looks like the entrypoint scripts come with the ability to build the config from a template
+      # (check out '/docker-entrypoint.d/20-envsubst-on-templates.sh').
+      /docker-entrypoint.sh nginx -g 'daemon off;'
+    ports:
+    - "${NETWORK_DASHBOARD_PORT-8080}:80"
