@@ -48,6 +48,6 @@ services:
       EOF
       # It also looks like the entrypoint scripts come with the ability to build the config from a template
       # (check out '/docker-entrypoint.d/20-envsubst-on-templates.sh').
-      /docker-entrypoint.sh nginx -g 'daemon off;'
+      exec /docker-entrypoint.sh nginx -g 'daemon off;'
     ports:
     - "${NETWORK_DASHBOARD_PORT-8080}:80"
