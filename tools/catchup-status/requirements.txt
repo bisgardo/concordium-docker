@@ -1,2 +1,3 @@
-pydantic~=2.3
 httpx~=0.25
+pydantic~=2.3
+requests~=2.31
