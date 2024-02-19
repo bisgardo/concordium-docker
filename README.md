@@ -101,17 +101,14 @@ The directory also holds the now-unused dockerfile for the genesis image. See co
 
 ## Build and/or run using Docker Compose
 
-The project includes a full Docker Compose deployment for running a node and collector,
+The project includes a full Docker Compose (v2) deployment for running a node and collector,
 optionally along with a set of related services (each of which is enabled individually).
+Instructions on how to install the Compose plugin are given in the [official documentation](https://docs.docker.com/compose/install/).
+
+The project has been tested with Compose v2.20.2.
 
 The main setup is configured in [`docker-compose.yaml`](./docker-compose.yaml)
 and is thoroughly parameterized to work with any Concordium blockchain network (including unofficial ones).
-
-It relies on features that are available only in relatively recent versions of Compose.
-The `requirements.txt` file pins a compatible version (the latest v1 release at the time of this writing)
-which may be installed (preferably in a [virtualenv](https://docs.python.org/3/library/venv.html))
-using `pip install -r requirements.txt`.
-The setup has not yet been tested with [Compose v2](https://docs.docker.com/compose/cli-command/).
 
 To build and run a node/collector instance on Mainnet with Prometheus enabled, adjust and run the following command:
 
@@ -122,7 +119,7 @@ DOMAIN=mainnet.concordium.software \
 GENESIS_DATA_FILE=./genesis/mainnet-0.dat \
 NODE_IMAGE=concordium-node:<tag> \
 COMPOSE_PROFILES=prometheus \
-docker-compose --project-name=mainnet up
+docker compose --project-name=mainnet up
 ```
 
 where `<tag>` is as described above.
@@ -141,15 +138,16 @@ The node collector starts up with a default delay of 30s to avoid filling the lo
 This may be overridden with the variable `NODE_COLLECTOR_DELAY_MS` which takes the delay in milliseconds.
 The service restarts automatically if it crashes due to too many unsuccessful connection attempts.
 
-By default the node collector uses gRPC APIv2 (i.e. port 11000). To support running older images, this value may be overridden using the variable `NODE_COLLECTOR_PORT`.
+By default the node collector uses gRPC APIv2 (on port 11000).
+To support running older images, this value may be overridden using the variable `NODE_COLLECTOR_PORT`.
 
-Adding `--project-name=<name>` to `docker-compose up` prepends `<name>` to the names of containers and other persistent resources,
+Adding `--project-name=<name>` to `docker compose up` prepends `<name>` to the names of containers and other persistent resources,
 making it possible to switch between networks without having to delete data and existing containers.
 Note that because ports are fixed, running multiple nodes at the same time is not supported with the current setup.
 
 The command will automatically build the images from scratch if they don't already exist.
 Set the flag `--no-build` to prevent that.
-To only build the images without starting containers, use the command `... docker-compose build`,
+To only build the images without starting containers, use the command `... docker compose build`,
 which also supports the option `--build-arg` to override build args in the compose file.
 See the [Compose CLI reference](https://docs.docker.com/compose/reference/)
 for the full list of commands and arguments.
@@ -158,7 +156,7 @@ Running a node without Docker Compose or some other orchestration tool is cumber
 [Look up](https://docs.docker.com/compose/compose-file/compose-file-v3/) the features used in the Compose file
 and [find](https://docs.docker.com/engine/reference/commandline/run/) the corresponding `docker run` args.
 
-The deployment may be stopped using `Ctrl-C` (unless running in detached mode) or `docker-compose stop`.
+The deployment may be stopped using `Ctrl-C` (unless running in detached mode) or `docker compose stop`.
 In the latter case, make sure to pass all the same project name, environment variables, etc. as were given to `up`.
 In both cases, the default behavior is to send a SIGTERM signal to the running containers with a
 [10 sec deadline](https://docs.docker.com/compose/faq/#why-do-my-services-take-10-seconds-to-recreate-or-stop)
@@ -168,7 +166,7 @@ In certain cases (like on startup), the node may need more than a few seconds to
 It's therefore good practice to increase this deadline using e.g.
 
 ```shell
-docker-compose stop --timeout=120
+docker compose stop --timeout=120
 ```
 
 An even safer option is to only send it a SIGTERM signal:
@@ -263,7 +261,7 @@ Database credentials etc. are configured with the following variables:
   This value of this variable only matters when catching up a large number of blocks -
   setting it to 1 is fine during normal operation.
 
-The variables may be passed to the `docker-compose` command above or persisted in a `.env` file as described below
+The variables may be passed to the `docker compose` command above or persisted in a `.env` file as described below
 (see [`testnet.env`](./testnet.env) and [`mainnet.env`](./mainnet.env);
 note that `TXLOG_PGPASSWORD` still has to be passed explicitly).
 
@@ -310,8 +308,8 @@ export NODE_NAME=my_node
 export DOMAIN=mainnet.concordium.software
 export GENESIS_DATA_FILE=./genesis/mainnet-0.dat
 export NODE_IMAGE=bisgardo/concordium-node:<tag>
-docker-compose pull # prevent 'up' from building instead of pulling
-docker-compose --project-name=mainnet up --profile=prometheus --no-build
+docker compose pull # prevent 'up' from building instead of pulling
+docker compose --project-name=mainnet up --profile=prometheus --no-build
 ```
 
 The convenience script `run.sh` loads the parameters from a `<network>.env` file:

@@ -2,7 +2,7 @@
 #
 # Usage:
 #
-#   NETWORK_DASHBOARD_IMAGE=<image> NETWORK_DASHBOARD_PORT=<port> COLLECTOR_BACKEND_DOMAIN=<domain> docker-compose up
+#   NETWORK_DASHBOARD_IMAGE=<image> NETWORK_DASHBOARD_PORT=<port> COLLECTOR_BACKEND_DOMAIN=<domain> docker compose up
 #
 # where
 #   <image>: The name of the image to use or build (default: "network-dashboard").
@@ -14,8 +14,8 @@
 #             - Testnet: dashboard.testnet.concordium.com
 #
 # Example: Build and run image with name 'network-dashboard' on port 8080:
-# - Mainnet: docker-compose up
-# - Testnet: COLLECTOR_BACKEND_DOMAIN=dashboard.testnet.concordium.com docker-compose up
+# - Mainnet: docker compose up
+# - Testnet: COLLECTOR_BACKEND_DOMAIN=dashboard.testnet.concordium.com docker compose up
 #
 # Note that since the dashboard automatically refreshes its data continuously,
 # you can stop the server and start it again on a different network.
