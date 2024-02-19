@@ -111,6 +111,7 @@ RUN mkdir -p /target/bin && \
     mkdir -p /target/lib && \
     cp ./concordium-base/rust-src/target/release/*.so /target/lib/ && \
     cp ./concordium-base/smart-contracts/lib/*.so /target/lib/ && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/libconcordium-consensus.so" /target/lib/ && \
     cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib/ && \
     cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib/ && \
     cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /target/lib/
