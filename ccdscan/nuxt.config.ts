@@ -13,9 +13,9 @@ export default defineNuxtConfig({
 	],
 	publicRuntimeConfig: {
 		apiUrl: 'http://localhost:5000/graphql',
-		wsUrl: 'wss://localhost:5000/graphql',
+		wsUrl: 'ws://localhost:5000/graphql',
 		environment: 'dev', // enables some error reporting or something
-		includeDevTools: false,
+		includeDevTools: true,
 	},
 	nitro: {
 		// Should be "node-server", but that doesn't work with the current dependency versions
