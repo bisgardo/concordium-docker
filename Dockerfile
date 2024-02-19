@@ -6,8 +6,8 @@ ARG git_repo_url='https://github.com/Concordium/concordium-node.git'
 
 # Tag of node to build. The default value the oldest version of the node that the build file has been verified to work with.
 # It's intended to serve only as documentation as the user is expected to override the value.
-ARG tag=5.3.2-1
-ARG ghc_version=9.2.7
+ARG tag=6.3.0-0
+ARG ghc_version=9.6.4
 ARG rust_version=1.68.2
 ARG cmake_version=3.16.3
 ARG flatbuffers_tag=v22.12.6
