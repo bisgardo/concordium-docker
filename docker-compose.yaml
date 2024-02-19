@@ -91,14 +91,15 @@ services:
     entrypoint:
     - /bin/sh
     - -c
-    - sleep "${ROSETTA_STARTUP_DELAY_SECS-60}" && concordium-rosetta
+    - |
+      sleep "${ROSETTA_STARTUP_DELAY_SECS-60}" && concordium-rosetta
     environment:
     - CONCORDIUM_ROSETTA_GRPC_HOST=node
     - CONCORDIUM_ROSETTA_GRPC_PORT=11000
     - CONCORDIUM_ROSETTA_NETWORK=${ROSETTA_NETWORK}
-    - CONCORDIUM_ROSETTA_PORT=8080
+    - CONCORDIUM_ROSETTA_PORT=8086
     ports:
-    - "8080:8080"
+    - "8086:8086"
     restart: unless-stopped # service may start before the node is operational
     stop_signal: SIGKILL
     depends_on:

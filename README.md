@@ -271,6 +271,7 @@ See [`postgresql.md`](./postgresql.md) for instructions on how to set up a local
 
 The Docker Compose file supports running an instance of the [Concordium implementation](https://github.com/Concordium/concordium-rosetta)
 of the [Rosetta](https://www.rosetta-api.org/) API under the profile `rosetta`.
+The server registers itself on port `8086`.
 The [image](https://hub.docker.com/r/concordium/rosetta/tags) to deploy is specified with the variable `ROSETTA_IMAGE`.
 To avoid initial crash-looping until the node is up,
 the variable `ROSETTA_STARTUP_DELAY_SECS` sets an optional delay (defaults to 1 min) before the service is started.
