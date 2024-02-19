@@ -23,5 +23,6 @@ RUN npm ci
 ARG min_version_included_in_stats
 RUN MIN_VERSION_INCLUDED_IN_STATS=${min_version_included_in_stats} npm run build
 
+# Copy build target to result image.
 FROM nginx:stable-alpine
 COPY --from=build /build/dist /usr/share/nginx/html
