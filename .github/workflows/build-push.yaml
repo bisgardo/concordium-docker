@@ -26,6 +26,16 @@ jobs:
       run: docker login --username "${{ env.user }}" --password-stdin <<< "${{ secrets.DOCKERHUB_ACCESS_TOKEN }}"
     - name: Build and push Docker images
       run: |
+        # Since Docker Compose v2, the entire spec must be valid even for services that aren't used
+        # as well as fields (like 'volumes') that the CLI command doesn't use.
+        # Otherwise the command fails.
+        # The following placeholders are included solely to satisfy this requirement;
+        # they do not affect the build at all.
+        export ROSETTA_IMAGE=rosetta
+        export PROMETHEUS_IMAGE=prometheus
+        export TRANSACTION_LOGGER_IMAGE=transaction-logger
+        export GENESIS_DATA_FILE=./genesis # must reference a valid path
+        # Define variables that are actually used in the build and perform that build/push.
         export NODE_TAG="${{ env.node_tag }}"
         export NODE_IMAGE="${{ env.node_image_repo }}:${{ env.node_image_tag }}"
         NODE_NAME= docker compose build && docker-compose push
