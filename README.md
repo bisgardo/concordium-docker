@@ -72,17 +72,13 @@ If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from using a
 previously cached clone of the source code at an older version of the branch.
 
-The currently active tag (as of 2023-12-06) is `6.2.3-0` for both Mainnet and Testnet.
+The currently active tag (as of 2024-02-20) is `6.2.3-0` for Mainnet and `6.3.0-0` for Testnet.
 
 *Optional*
 
-The build args `ghc_version` and `rust_version` override the default values of 9.2.7 and 1.68.2, respectively.
-Additionally, the build arg `node_features` may be used to provide feature flags to the build command.
-The feature `profiling` should not be set for reasons explained in the dockerfile.
-
-The full set of supported feature flags may be found in
-[`Cargo.toml`](https://github.com/Concordium/concordium-node/blob/main/concordium-node/Cargo.toml),
-but it's not well documented.
+The versions of external tools used in the build are defined as the default values of build arguments.
+This is mostly done to keep them in one place as a set of constants, but also means that they can be overriden at build time.
+See the top of the dockerfile for the available set of args.
 
 ### `concordium-node-genesis`
 

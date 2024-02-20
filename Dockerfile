@@ -6,13 +6,18 @@ ARG git_repo_url='https://github.com/Concordium/concordium-node.git'
 
 # Tag of node to build. The default value the oldest version of the node that the build file has been verified to work with.
 # It's intended to serve only as documentation as the user is expected to override the value.
-ARG tag=5.3.2-1
-ARG ghc_version=9.2.7
+ARG tag=6.3.0-0
+
+# Used to provide feature flags to the build command. The feature `profiling` should not be set for reasons explained in the build image below.
+# The full set of supported feature flags may be found at https://github.com/Concordium/concordium-node/blob/main/concordium-node/Cargo.toml,
+# but it's not well documented.
+ARG node_features=''
+
+# Versions of external build tools and base image.
+ARG ghc_version=9.6.4
 ARG rust_version=1.68.2
-ARG cmake_version=3.16.3
-ARG flatbuffers_tag=v22.12.6
-ARG protobuf_version=3.20.1
-ARG extra_features=''
+ARG flatbuffers_version=23.5.26
+ARG protobuf_version=25.3
 ARG debian_release='buster'
 
 # Clone sources.
@@ -21,35 +26,6 @@ ARG git_repo_url
 ARG tag
 WORKDIR /source
 RUN git -c advice.detachedHead=false clone --branch="${tag}" --recurse-submodules --depth=1 "${git_repo_url}" .
-
-# Clone and compile FlatBuffers compiler 'flatc'.
-# This is necessary because the official binaries are built against a newer runtime version than the one shipped with Buster.
-FROM debian:${debian_release}-slim AS flatbuffers
-# Install build dependencies:
-# - 'curl': Used to fetch CMake binary and modules.
-# - 'git': Used to fetch FlatBuffers source.
-# - 'g++': Used to compile FlatBuffers source files.
-# - 'make': Used to orchestrate the FlatBuffers build (via CMake).
-RUN apt-get update && \
-    apt-get install -y curl git g++ make && \
-    rm -rf /var/lib/apt/lists/*
-# Download and install suitable version of CMake.
-# This is currently necessary as the version shipped with Buster's official repo (v3.13) is too old to build the latest tag (v3.16+).
-# The tool was previously built from source; see commit 7001a39 for the implementation.
-WORKDIR /tmp/cmake
-ARG cmake_version
-RUN curl -sSfL "https://github.com/Kitware/CMake/releases/download/v${cmake_version}/cmake-${cmake_version}-linux-x86_64.tar.gz" | \
-    tar -zx --strip-components=1 && \
-    mv bin/cmake /usr/local/bin/ && \
-    mv share/cmake-* /usr/local/share/
-WORKDIR /build
-ARG flatbuffers_tag
-# Clone with full history because some build step uses 'git describe' to print some version.
-# The build doesn't crash if this fails, but the full repo is only 32 MB and the logs look better without "fatal" errors in them.
-RUN git -c advice.detachedHead=false clone --branch="${flatbuffers_tag}" https://github.com/google/flatbuffers.git .
-RUN cmake -G "Unix Makefiles" . && \
-    make -j"$(nproc)" && \
-    make install
 
 # Build 'concordium-node' (and 'node-collector') in temporary image.
 FROM haskell:${ghc_version}-slim-${debian_release} AS build
@@ -87,9 +63,16 @@ RUN curl \
 # Compile consensus (Haskell and some Rust).
 RUN stack build --stack-yaml=./concordium-consensus/stack.yaml
 
-# Copy 'flatc' binary that was built in a previous step and verify that it's callable.
-COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
-RUN flatc --version > /dev/null
+# Download and install suitable version of the FlatBuffers compiler 'flatc' and verify that it's callable.
+# This tool was previously built from source; see commit 09f2211 for the implementation.
+ARG flatbuffers_version
+RUN curl \
+        -sSfL \
+        -o flatc.zip \
+        "https://github.com/google/flatbuffers/releases/download/v${flatbuffers_version}/Linux.flatc.binary.g++-10.zip" && \
+    unzip -qq flatc.zip flatc -d /usr/local/bin && \
+    rm flatc.zip && \
+    flatc --version > /dev/null
 
 # Compile 'concordium-node' (Rust, depends on consensus).
 # Note that feature 'profiling' implies 'static' (i.e. static linking).
@@ -111,6 +94,7 @@ RUN mkdir -p /target/bin && \
     mkdir -p /target/lib && \
     cp ./concordium-base/rust-src/target/release/*.so /target/lib/ && \
     cp ./concordium-base/smart-contracts/lib/*.so /target/lib/ && \
+    cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/libconcordium-consensus.so" /target/lib/ && \
     cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --local-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib/ && \
     cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml path --snapshot-install-root)/lib/x86_64-linux-ghc-${ghc_version}"/libHS*.so /target/lib/ && \
     cp "$(stack --stack-yaml=./concordium-consensus/stack.yaml ghc -- --print-libdir)"/*/lib*.so* /target/lib/
