@@ -6,8 +6,12 @@ One way to deploy the database is to include it as an extra service in the Docke
 This is probably the easiest solution as the DB is then already on the same network as the Node.
 It will also be directly "namespaced" to the project, avoiding interference between data from testnet and mainnet.
 
-However, because of the strict availability requirements mentioned above, it may be preferable to run it separately,
-either natively on the host or in another Docker (Compose) setup.
+Running the database separately on the host used to be preferred because the old-style transaction logging (removed in commit 6933166)
+had a hard requirement on the database being available at all times.
+With the [current solution](./README.md#transaction-logging), this is probably no longer the case.
+
+The following instructions explain how to set up the database on the host, if, for whatever reason, one prefers that.
+The setup probably doesn't follow best practices on security and might not be suitable for a production environment.
 
 ## Installing on Ubuntu (like) host
 
