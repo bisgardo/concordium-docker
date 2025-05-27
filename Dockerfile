@@ -17,8 +17,8 @@ ARG node_features=''
 # Versions of external build tools and base image.
 ARG ghc_version=9.6.6
 ARG rust_version=1.82.0
-ARG flatbuffers_version=23.5.26
-ARG protobuf_version=25.3
+ARG flatbuffers_version=25.2.10
+ARG protobuf_version=31.0
 ARG debian_release='bullseye'
 
 # Clone sources.
@@ -70,7 +70,7 @@ ARG flatbuffers_version
 RUN curl \
         -sSfL \
         -o flatc.zip \
-        "https://github.com/google/flatbuffers/releases/download/v${flatbuffers_version}/Linux.flatc.binary.g++-10.zip" && \
+        "https://github.com/google/flatbuffers/releases/download/v${flatbuffers_version}/Linux.flatc.binary.g++-13.zip" && \
     unzip -qq flatc.zip flatc -d /usr/local/bin && \
     rm flatc.zip && \
     flatc --version > /dev/null
