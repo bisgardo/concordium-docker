@@ -5,8 +5,8 @@ dynamically linked node for the [Concordium](https://concordium.com) blockchain.
 
 ## Quickstart
 
-Start a Concordium node deployment with node name `<node-name>`
-using Docker Compose with publicly available images:
+Start a Concordium Node deployment with name `<node-name>`
+using Docker Compose with [pre-built images](#ci-public-images):
 
 *Testnet*
 
@@ -46,7 +46,7 @@ NODE_NAME=<node-name> ./run.sh <network> +prometheus +txlog
 
 By default, the builds run in images based on Debian Bullseye (11).
 The build arg `debian_release` may be used to select another Debian release
-(though historically, the official Haskell image don't seem to support multiple Debian versions per GHC version).
+(though historically, the official Haskell image don't seem to support more than one Debian version for any given GHC version).
 
 ### `concordium-node`
 
@@ -67,6 +67,13 @@ The tag is also used for the resulting Docker image.
 If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from using a
 previously cached clone of the source code at an older version of the branch.
+
+The latest tag may be found in the [official repository](https://github.com/Concordium/concordium-node/tags).
+However, the tags don't always match the currently deployed software versions on both networks.
+
+You may also check the tags of the [public images](#ci-public-images) (the part before `_`)
+to see what Concordium Node tag was used in the latest build (and which networks' .env files have been updated to use it).
+However, this repo not being updated regularly, so this information is prone to being outdated.
 
 *Optional*
 
@@ -303,13 +310,16 @@ docker compose pull # prevent 'up' from building instead of pulling
 docker compose --project-name=mainnet up --profile=prometheus --no-build
 ```
 
-The convenience script `run.sh` loads the parameters from a `<network>.env` file:
+The convenience script [`run.sh`](./run.sh) expects to find a file `./<network>.env`
+([`mainnet.env`](./mainnet.env) and [`testnet.env`](./testnet.env) being provided with the repo)
+from which it loads the deployment parameters and network-specific values:
 
 ```shell
 NODE_NAME=my_node ./run.sh <network> [+<feature>...]
 ```
 
-where `<feature>` is a Compose profile to be enabled and/or an override to be applied.
+where `<feature>` is a Compose profile to be enabled and/or an override to be applied ([list](#additional-features)).
+
 An override `<feature>` is a file `docker-compose.<feature>.yaml` which - if it exists - get merged
 onto the "base" `docker-compose.yaml` file.
 Multiple profiles/overrides may be enabled by appending a `+` argument for each of them.
@@ -334,11 +344,18 @@ To instead enable [transaction logging](#transaction-logging), append `+txlog` a
 TXLOG_PGPASSWORD=<database-password> NODE_NAME=my_node ./run.sh <network> +txlog
 ```
 
-Working environment files that reference the most recent public images
-are provided for Testnet and Mainnet.
+The .env files reference the most recently published images,
+where the version is compatible with the "currently active" tag of the corresponding network
+(as of the time the image was built).
+The tag of a given image mathes the tag of the git commit that Concordium Node was built from
+followed by an additional "build version" component (the part after `_`)
+The build version starts at 0 for any given Node tag and is bumped whenever a new build is pushed for that same tag
+(for example when building with an updated compiler).
+
+### Disclaimer
 
 Feel free to use these images for testing and experimentation,
-but never trust random internet strangers' binaries with anything secret or valuable.
+but never trust random internet strangers' pre-built binaries with anything secret or valuable.
 
 Instead, use the
 [officially released](https://developer.concordium.software/en/mainnet/net/guides/run-node-ubuntu.html)
