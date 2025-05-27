@@ -45,8 +45,8 @@ NODE_NAME=<node-name> ./run.sh <network> +prometheus +txlog
 ## Build
 
 By default, the builds run in images based on Debian Bullseye (11).
-The build arg `debian_release` may be used to select another Debian release
-(though historically, the official Haskell image don't seem to support more than one Debian version for any given GHC version).
+The build arg `debian_release` may be used to select another Debian release,
+though no other than the default value should be expected to work.
 
 ### `concordium-node`
 

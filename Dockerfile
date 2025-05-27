@@ -17,7 +17,8 @@ ARG node_features=''
 # Versions of external build tools and base image.
 ARG ghc_version=9.6.6
 ARG rust_version=1.82.0
-ARG flatbuffers_version=25.2.10
+ARG flatbuffers_cmake_version=3.16.3
+ARG flatbuffers_tag=v22.12.06 # keep in sync with 'flatbuffers' dependency in https://github.com/Concordium/concordium-node/blob/main/concordium-node/Cargo.toml#L52
 ARG protobuf_version=31.0
 ARG debian_release='bullseye'
 
@@ -27,6 +28,35 @@ ARG git_repo_url
 ARG tag
 WORKDIR /source
 RUN git -c advice.detachedHead=false clone --branch="${tag}" --recurse-submodules --depth=1 "${git_repo_url}" .
+
+# Clone and compile FlatBuffers compiler 'flatc'.
+# This is necessary because the official binaries are built against a version of glibc that isn't compatible with Bullseye.
+FROM debian:${debian_release}-slim AS flatbuffers
+# Install build dependencies:
+# - 'curl': Used to fetch CMake binary and modules.
+# - 'git': Used to fetch FlatBuffers source.
+# - 'g++': Used to compile FlatBuffers source files.
+# - 'make': Used to orchestrate the FlatBuffers build (via CMake).
+RUN apt-get update && \
+    apt-get install -y curl git g++ make && \
+    rm -rf /var/lib/apt/lists/*
+# Download and install suitable version of CMake.
+# This is currently necessary as the version shipped with Buster's official repo (v3.13) is too old to build the latest tag (v3.16+).
+# The tool was previously built from source; see commit b6477ee for the change.
+WORKDIR /tmp/cmake
+ARG flatbuffers_cmake_version
+RUN curl -sSfL "https://github.com/Kitware/CMake/releases/download/v${flatbuffers_cmake_version}/cmake-${flatbuffers_cmake_version}-linux-x86_64.tar.gz" | \
+    tar -zx --strip-components=1 && \
+    mv bin/cmake /usr/local/bin/ && \
+    mv share/cmake-* /usr/local/share/
+WORKDIR /build
+ARG flatbuffers_tag
+# Clone with full history because some build step uses 'git describe' to print some version.
+# The build doesn't crash if this fails, but the full repo is only 32 MB and the logs look better without "fatal" errors in them.
+RUN git -c advice.detachedHead=false clone --branch="${flatbuffers_tag}" https://github.com/google/flatbuffers.git .
+RUN cmake -G "Unix Makefiles" . && \
+    make -j"$(nproc)" && \
+    make install
 
 # Build 'concordium-node' (and 'node-collector') in temporary image.
 FROM haskell:${ghc_version}-slim-${debian_release} AS build
@@ -51,7 +81,7 @@ COPY --from=source /source .
 # This is a dependency of 'prost-build' as of v0.11 which no longer bundles/builds this tool
 # (see 'https://github.com/tokio-rs/prost/tree/4459a1e36a63a0e10e418b823957cc80d9fbc744#protoc')
 # and 'proto-lens-protobuf-types' which is a dependency of 'concordium-consensus'.
-# This tool was previously built from source; see commit 7001a39 for the implementation.
+# This tool was previously built from source; see commit b6477ee for the change.
 ARG protobuf_version
 RUN curl \
         -sSfL \
@@ -64,16 +94,9 @@ RUN curl \
 # Compile consensus (Haskell and some Rust).
 RUN stack build --stack-yaml=./concordium-consensus/stack.yaml
 
-# Download and install suitable version of the FlatBuffers compiler 'flatc' and verify that it's callable.
-# This tool was previously built from source; see commit 09f2211 for the implementation.
-ARG flatbuffers_version
-RUN curl \
-        -sSfL \
-        -o flatc.zip \
-        "https://github.com/google/flatbuffers/releases/download/v${flatbuffers_version}/Linux.flatc.binary.g++-13.zip" && \
-    unzip -qq flatc.zip flatc -d /usr/local/bin && \
-    rm flatc.zip && \
-    flatc --version > /dev/null
+# Copy 'flatc' binary that was built in a previous step and verify that it's callable.
+COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
+RUN flatc --version > /dev/null
 
 # Compile 'concordium-node' (Rust, depends on consensus).
 # Note that feature 'profiling' implies 'static' (i.e. static linking).
