@@ -4,9 +4,10 @@
 # Repository holding the source code for the Node.
 ARG git_repo_url='https://github.com/Concordium/concordium-node.git'
 
-# Tag of node to build. The default value the oldest version of the node that the build file has been verified to work with.
+# Tag of node to build. The default value the oldest version of the node that the build file has been verified to work with
+# (is updated if we need to bump compiler the default compiler versions specified below or update the script in some other way).
 # It's intended to serve only as documentation as the user is expected to override the value.
-ARG tag=6.3.0-0
+ARG tag=8.0.3-1
 
 # Used to provide feature flags to the build command. The feature `profiling` should not be set for reasons explained in the build image below.
 # The full set of supported feature flags may be found at https://github.com/Concordium/concordium-node/blob/main/concordium-node/Cargo.toml,
@@ -14,11 +15,11 @@ ARG tag=6.3.0-0
 ARG node_features=''
 
 # Versions of external build tools and base image.
-ARG ghc_version=9.6.4
-ARG rust_version=1.68.2
+ARG ghc_version=9.6.6
+ARG rust_version=1.82.0
 ARG flatbuffers_version=23.5.26
 ARG protobuf_version=25.3
-ARG debian_release='buster'
+ARG debian_release='bullseye'
 
 # Clone sources.
 FROM alpine/git:latest AS source

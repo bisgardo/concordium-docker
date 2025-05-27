@@ -44,13 +44,9 @@ NODE_NAME=<node-name> ./run.sh <network> +prometheus +txlog
 
 ## Build
 
-By default, the builds run in images based on Debian Buster (10).
-The build arg `debian_release` may be used to select another Debian release.
-As of 2022-09-08, no other values besides the default one are supported
-due to the project's dependency on the [Haskell toolchain](https://hub.docker.com/_/haskell):
-
-> Note: Currently stable Debian is version 11 bullseye, however it is not yet supported by Haskell tooling.
-> Until that time the default will remain Debian 10 buster. We have dropped support for Debian 9 stretch.
+By default, the builds run in images based on Debian Bullseye (11).
+The build arg `debian_release` may be used to select another Debian release
+(though historically, the official Haskell image don't seem to support multiple Debian versions per GHC version).
 
 ### `concordium-node`
 
@@ -71,8 +67,6 @@ The tag is also used for the resulting Docker image.
 If a branch name is used for `<tag>` (not recommended),
 then the `--no-cache` flag should be set to prevent the Docker daemon from using a
 previously cached clone of the source code at an older version of the branch.
-
-The currently active tag (as of 2024-02-29) is `6.3.0-0` for both Mainnet and Testnet.
 
 *Optional*
 
