@@ -33,22 +33,13 @@ RUN git -c advice.detachedHead=false clone --branch="${tag}" --recurse-submodule
 # This is necessary because the official binaries are built against a version of glibc that isn't compatible with Bullseye.
 FROM debian:${debian_release}-slim AS flatbuffers
 # Install build dependencies:
-# - 'curl': Used to fetch CMake binary and modules.
+# - 'cmake': Used to fetch CMake binary and modules.
 # - 'git': Used to fetch FlatBuffers source.
 # - 'g++': Used to compile FlatBuffers source files.
 # - 'make': Used to orchestrate the FlatBuffers build (via CMake).
 RUN apt-get update && \
-    apt-get install -y curl git g++ make && \
+    apt-get install -y cmake git g++ make && \
     rm -rf /var/lib/apt/lists/*
-# Download and install suitable version of CMake.
-# This is currently necessary as the version shipped with Buster's official repo (v3.13) is too old to build the latest tag (v3.16+).
-# The tool was previously built from source; see commit b6477ee for the change.
-WORKDIR /tmp/cmake
-ARG flatbuffers_cmake_version
-RUN curl -sSfL "https://github.com/Kitware/CMake/releases/download/v${flatbuffers_cmake_version}/cmake-${flatbuffers_cmake_version}-linux-x86_64.tar.gz" | \
-    tar -zx --strip-components=1 && \
-    mv bin/cmake /usr/local/bin/ && \
-    mv share/cmake-* /usr/local/share/
 WORKDIR /build
 ARG flatbuffers_tag
 # Clone with full history because some build step uses 'git describe' to print some version.
