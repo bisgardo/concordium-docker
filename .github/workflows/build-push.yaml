@@ -38,4 +38,4 @@ jobs:
         # Define variables that are actually used in the build and perform that build/push.
         export NODE_TAG="${{ env.node_tag }}"
         export NODE_IMAGE="${{ env.node_image_repo }}:${{ env.node_image_tag }}"
-        NODE_NAME= docker compose build && docker-compose push
+        NODE_NAME= docker compose build && docker compose push

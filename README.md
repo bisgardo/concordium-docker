@@ -258,8 +258,7 @@ Database credentials etc. are configured with the following variables:
   This value of this variable only matters when catching up a large number of blocks -
   setting it to 1 is fine during normal operation.
 
-The variables may be passed to the `docker compose` command above or persisted in a `.env` file as described below
-(see [`testnet.env`](./testnet.env) and [`mainnet.env`](./mainnet.env);
+The variables may be passed to the `docker compose` command above or persisted in an env file as [described below](#ci-public-images).
 note that `TXLOG_PGPASSWORD` still has to be passed explicitly).
 
 See [`postgresql.md`](./postgresql.md) for instructions on how to set up a local database.
@@ -310,6 +309,8 @@ docker compose pull # prevent 'up' from building instead of pulling
 docker compose --project-name=mainnet up --profile=prometheus --no-build
 ```
 
+*TODO: Make the following its own (sub)section that explains using env files and run.sh in general. Probably belong under the section about building and running with Compose. Remember to update references (to this section) appropriately.*
+
 The convenience script [`run.sh`](./run.sh) expects to find a file `./<network>.env`
 ([`mainnet.env`](./mainnet.env) and [`testnet.env`](./testnet.env) being provided with the repo)
 from which it loads the deployment parameters and network-specific values:
@@ -344,7 +345,7 @@ To instead enable [transaction logging](#transaction-logging), append `+txlog` a
 TXLOG_PGPASSWORD=<database-password> NODE_NAME=my_node ./run.sh <network> +txlog
 ```
 
-The .env files reference the most recently published images,
+The env files reference the most recently published images,
 where the version is compatible with the "currently active" tag of the corresponding network
 (as of the time the image was built).
 The tag of a given image mathes the tag of the git commit that Concordium Node was built from
