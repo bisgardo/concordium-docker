@@ -17,8 +17,8 @@ ARG node_features=''
 # Versions of external build tools and base image.
 ARG ghc_version=9.6.6
 ARG rust_version=1.82.0
-ARG flatbuffers_cmake_version=3.16.3
-ARG flatbuffers_tag=v22.12.06 # keep in sync with 'flatbuffers' dependency in https://github.com/Concordium/concordium-node/blob/main/concordium-node/Cargo.toml#L52
+# To be kept in sync with 'flatbuffers' dependency in https://github.com/Concordium/concordium-node/blob/main/concordium-node/Cargo.toml#L52.
+ARG flatbuffers_tag=v22.12.06
 ARG protobuf_version=31.0
 ARG debian_release='bullseye'
 
