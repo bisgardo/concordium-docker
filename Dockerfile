@@ -4,9 +4,10 @@
 # Repository holding the source code for the Node.
 ARG git_repo_url='https://github.com/Concordium/concordium-node.git'
 
-# Tag of node to build. The default value the oldest version of the node that the build file has been verified to work with.
+# Tag of node to build. The default value the oldest version of the node that the build file has been verified to work with
+# (is updated if we need to bump compiler the default compiler versions specified below or update the script in some other way).
 # It's intended to serve only as documentation as the user is expected to override the value.
-ARG tag=6.3.0-0
+ARG tag=8.0.3-1
 
 # Used to provide feature flags to the build command. The feature `profiling` should not be set for reasons explained in the build image below.
 # The full set of supported feature flags may be found at https://github.com/Concordium/concordium-node/blob/main/concordium-node/Cargo.toml,
@@ -14,11 +15,12 @@ ARG tag=6.3.0-0
 ARG node_features=''
 
 # Versions of external build tools and base image.
-ARG ghc_version=9.6.4
-ARG rust_version=1.68.2
-ARG flatbuffers_version=23.5.26
-ARG protobuf_version=25.3
-ARG debian_release='buster'
+ARG ghc_version=9.6.6
+ARG rust_version=1.82.0
+# To be kept in sync with 'flatbuffers' dependency in https://github.com/Concordium/concordium-node/blob/main/concordium-node/Cargo.toml#L52.
+ARG flatbuffers_tag=v22.12.06
+ARG protobuf_version=31.0
+ARG debian_release='bullseye'
 
 # Clone sources.
 FROM alpine/git:latest AS source
@@ -26,6 +28,26 @@ ARG git_repo_url
 ARG tag
 WORKDIR /source
 RUN git -c advice.detachedHead=false clone --branch="${tag}" --recurse-submodules --depth=1 "${git_repo_url}" .
+
+# Clone and compile FlatBuffers compiler 'flatc'.
+# This is necessary because the official binaries are built against a version of glibc that isn't compatible with Bullseye.
+FROM debian:${debian_release}-slim AS flatbuffers
+# Install build dependencies:
+# - 'cmake': Used to fetch CMake binary and modules.
+# - 'git': Used to fetch FlatBuffers source.
+# - 'g++': Used to compile FlatBuffers source files.
+# - 'make': Used to orchestrate the FlatBuffers build (via CMake).
+RUN apt-get update && \
+    apt-get install -y cmake git g++ make && \
+    rm -rf /var/lib/apt/lists/*
+WORKDIR /build
+ARG flatbuffers_tag
+# Clone with full history because some build step uses 'git describe' to print some version.
+# The build doesn't crash if this fails, but the full repo is only 32 MB and the logs look better without "fatal" errors in them.
+RUN git -c advice.detachedHead=false clone --branch="${flatbuffers_tag}" https://github.com/google/flatbuffers.git .
+RUN cmake -G "Unix Makefiles" . && \
+    make -j"$(nproc)" && \
+    make install
 
 # Build 'concordium-node' (and 'node-collector') in temporary image.
 FROM haskell:${ghc_version}-slim-${debian_release} AS build
@@ -50,7 +72,7 @@ COPY --from=source /source .
 # This is a dependency of 'prost-build' as of v0.11 which no longer bundles/builds this tool
 # (see 'https://github.com/tokio-rs/prost/tree/4459a1e36a63a0e10e418b823957cc80d9fbc744#protoc')
 # and 'proto-lens-protobuf-types' which is a dependency of 'concordium-consensus'.
-# This tool was previously built from source; see commit 7001a39 for the implementation.
+# This tool was previously built from source; see commit b6477ee for the change.
 ARG protobuf_version
 RUN curl \
         -sSfL \
@@ -63,16 +85,9 @@ RUN curl \
 # Compile consensus (Haskell and some Rust).
 RUN stack build --stack-yaml=./concordium-consensus/stack.yaml
 
-# Download and install suitable version of the FlatBuffers compiler 'flatc' and verify that it's callable.
-# This tool was previously built from source; see commit 09f2211 for the implementation.
-ARG flatbuffers_version
-RUN curl \
-        -sSfL \
-        -o flatc.zip \
-        "https://github.com/google/flatbuffers/releases/download/v${flatbuffers_version}/Linux.flatc.binary.g++-10.zip" && \
-    unzip -qq flatc.zip flatc -d /usr/local/bin && \
-    rm flatc.zip && \
-    flatc --version > /dev/null
+# Copy 'flatc' binary that was built in a previous step and verify that it's callable.
+COPY --from=flatbuffers /usr/local/bin/flatc /usr/local/bin/flatc
+RUN flatc --version > /dev/null
 
 # Compile 'concordium-node' (Rust, depends on consensus).
 # Note that feature 'profiling' implies 'static' (i.e. static linking).
